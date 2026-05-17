@@ -1,49 +1,159 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #faf8f5;
+  --card: #ffffff;
+  --ink: #2b2622;
+  --muted: #7a7269;
+  --line: #e6e1d9;
+  --accent: #8b5a3c;
+  --accent-soft: #f1e6dc;
+  --ok: #4a7c59;
+  --warn: #c66a1a;
+  --bad: #b13c3c;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
 }
 
-html {
-  height: 100%;
+.wrap { max-width: 1100px; margin: 0 auto; padding: 32px 24px 80px; }
+
+header { margin-bottom: 32px; }
+header h1 { margin: 0 0 6px; font-size: 28px; letter-spacing: -0.02em; font-weight: 600; }
+header p { margin: 0; color: var(--muted); font-size: 14px; }
+
+.layout { display: grid; grid-template-columns: 360px 1fr; gap: 28px; }
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 22px; }
+.panel h2 {
+  font-size: 13px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--muted); margin: 0 0 16px;
 }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
+.field { margin-bottom: 18px; }
+.field label { display: block; font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 6px; }
+
+select, input[type="number"], input[type="text"] {
+  width: 100%; padding: 9px 12px;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: #fff; color: var(--ink); font-size: 14px; font-family: inherit;
+}
+select:focus, input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+.checks { display: grid; gap: 8px; }
+.check {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line); border-radius: 8px;
+  cursor: pointer; transition: all 0.15s; user-select: none;
+}
+.check:hover { background: var(--accent-soft); border-color: var(--accent); }
+.check input { margin: 0; }
+.check.active { background: var(--accent-soft); border-color: var(--accent); }
+.check-label { font-size: 13px; }
+.check-desc { font-size: 11px; color: var(--muted); }
+
+button.primary {
+  width: 100%; padding: 12px;
+  background: var(--accent); color: #fff;
+  border: none; border-radius: 8px;
+  font-size: 14px; font-weight: 600;
+  cursor: pointer; margin-top: 8px;
+  transition: background 0.15s;
+}
+button.primary:hover { background: #6f4730; }
+
+button.secondary {
+  padding: 8px 14px;
+  background: #fff; color: var(--ink);
+  border: 1px solid var(--line); border-radius: 8px;
+  font-size: 13px; cursor: pointer; font-family: inherit;
+}
+button.secondary:hover { background: var(--accent-soft); border-color: var(--accent); }
+
+.empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+.empty .icon { font-size: 36px; margin-bottom: 12px; opacity: 0.4; }
+
+/* Fiche technique */
+.fiche { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 32px; }
+.fiche-head {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
+  padding-bottom: 18px; border-bottom: 2px solid var(--ink); margin-bottom: 20px;
+}
+.fiche-title h3 { margin: 0 0 4px; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+.fiche-title .sub { color: var(--muted); font-size: 13px; }
+.fiche-meta { text-align: right; font-size: 12px; color: var(--muted); }
+.fiche-meta strong { color: var(--ink); font-weight: 600; }
+.fiche-actions { display: flex; gap: 8px; margin-bottom: 16px; }
+
+.badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+.badge {
+  font-size: 11px; padding: 3px 9px; border-radius: 20px;
+  background: var(--accent-soft); color: var(--accent);
+  font-weight: 500; letter-spacing: 0.02em;
+}
+.badge.ok { background: #e3efe6; color: var(--ok); }
+.badge.warn { background: #fce8d4; color: var(--warn); }
+
+table.ingredients { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+table.ingredients th {
+  text-align: left; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--muted); padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+}
+table.ingredients td {
+  padding: 9px 10px; border-bottom: 1px solid var(--line);
+  font-size: 14px; vertical-align: top;
+}
+table.ingredients td.role {
+  font-size: 11px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.04em; width: 130px;
+}
+table.ingredients td.qty {
+  text-align: right; font-variant-numeric: tabular-nums;
+  white-space: nowrap; color: var(--ink);
+}
+table.ingredients td.pct {
+  text-align: right; font-variant-numeric: tabular-nums;
+  color: var(--muted); width: 80px;
+}
+table.ingredients tr.total td {
+  border-bottom: none; border-top: 2px solid var(--ink);
+  padding-top: 12px; font-weight: 600;
 }
 
-body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.section { margin-bottom: 24px; }
+.section h4 {
+  font-size: 13px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); margin: 0 0 10px;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+ol.process { margin: 0; padding-left: 22px; }
+ol.process li { margin-bottom: 6px; }
+
+.note {
+  font-size: 13px; color: var(--muted);
+  padding: 12px 14px; background: var(--bg);
+  border-left: 3px solid var(--accent); border-radius: 4px;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+@media print {
+  body { background: #fff; }
+  .wrap { padding: 0; max-width: none; }
+  header, .panel, .fiche-actions, .empty { display: none !important; }
+  .layout { display: block; }
+  .fiche { border: none; padding: 0; box-shadow: none; }
+  .fiche-head { border-bottom: 2px solid #000; }
+  table.ingredients { page-break-inside: avoid; }
+  .section { page-break-inside: avoid; }
+  body, .fiche { color: #000; }
 }
