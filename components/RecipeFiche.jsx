@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 function formatG(g) {
   if (g >= 100) return `${g.toFixed(0)} g`;
   if (g >= 10)  return `${g.toFixed(1)} g`;
@@ -15,7 +17,66 @@ function StatusDot({ ok }) {
   );
 }
 
-function EquilibreRow({ label, valeur, min, max, ok, ecart }) {
+function BalanceJournal({ journal, warnings }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="accordion">
+      <button className="accordion-trigger" onClick={() => setOpen(o => !o)}>
+        <span>
+          Comment cette recette a été équilibrée
+          {journal.length > 0 && (
+            <span style={{ marginLeft: 8, fontSize: 11, color: 'var(--muted)', fontWeight: 400 }}>
+              {journal.length} ajustement{journal.length > 1 ? 's' : ''}
+            </span>
+          )}
+        </span>
+        <span className={`accordion-arrow${open ? ' open' : ''}`}>▼</span>
+      </button>
+
+      {open && (
+        <div className="accordion-body">
+          {journal.length === 0 ? (
+            <div style={{ color: 'var(--ok)', fontWeight: 500, fontSize: 13 }}>
+              ✓ Recette équilibrée sans ajustement — toutes les valeurs sont dans les cibles.
+            </div>
+          ) : (
+            <>
+              {warnings.length > 0 && (
+                <div style={{ marginBottom: 14 }}>
+                  {warnings.map((w, i) => (
+                    <div key={i} className="note" style={{ borderColor: 'var(--warn)', marginBottom: 6 }}>
+                      ⚠ {w}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {journal.map((entry, i) => (
+                <div key={i} className="journal-entry">
+                  <div className="journal-entry-header">
+                    <span className="journal-badge">Itération {entry.iteration}</span>
+                    <span className="journal-ingredient">{entry.ingredient}</span>
+                    <span className="journal-delta">
+                      {entry.pctBefore}% → {entry.pctApres}%
+                      &nbsp;({entry.gBefore} g → {entry.gApres} g)
+                    </span>
+                  </div>
+                  <div style={{ marginBottom: 4 }}>
+                    <span className="journal-param">{entry.parametreLabel} = {entry.valeurAvant} </span>
+                    <span style={{ color: 'var(--muted)', fontSize: 11 }}>cible {entry.cible}</span>
+                  </div>
+                  <div className="journal-rule">{entry.regle}</div>
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EquilibreRow({ label, valeur, min, max, ok }) {
   const pct = Math.min(100, Math.max(0, ((valeur - min) / (max - min)) * 100));
   return (
     <tr>
@@ -53,7 +114,7 @@ export default function RecipeFiche({ recette }) {
     );
   }
 
-  const { texture, description, parfum, masse, contraintes: c, badges, lignes, process: proc, date, rapport, ingredientDb } = recette;
+  const { texture, description, parfum, masse, contraintes: c, badges, lignes, process: proc, date, rapport, ingredientDb, journal = [], warnings = [] } = recette;
   const totalG = lignes.reduce((s, l) => s + l.g, 0);
 
   const badgesRendus = badges.length > 0
@@ -190,6 +251,13 @@ export default function RecipeFiche({ recette }) {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Journal de rééquilibrage */}
+        {rapport && (
+          <div className="section">
+            <BalanceJournal journal={journal} warnings={warnings} />
           </div>
         )}
 

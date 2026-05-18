@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { TEMPLATES } from '@/lib/templates.js';
-import { PARFUMS, CONTRAINTES, FAMILLE_ORDER, FAMILLE_LABELS } from '@/lib/data.js';
+import { PARFUMS, CONTRAINTES } from '@/lib/data.js';
 import { genererRecette } from '@/lib/engine.js';
-import { fetchIngredients, fetchTemplateTarget, TEMPLATE_FAMILLES, SUPABASE_TO_PARFUM_V1 } from '@/lib/ingredient-store.js';
-import { calculateRecipe } from '@/lib/calculator.js';
+import { fetchIngredients, fetchTemplateTarget, TEMPLATE_FAMILLES, SUPABASE_TO_PARFUM_V1, FROZEN_TEMPLATES } from '@/lib/ingredient-store.js';
+import { autoBalance } from '@/lib/calculator.js';
 
 const FAMILLE_LABELS_FR = {
   fruits_frais:           'Fruits frais',
@@ -66,21 +66,34 @@ export default function RecipeForm({ onRecette }) {
     // Génération V1
     const recette = genererRecette({ textureId, parfumId, masse, contraintes });
 
-    // Rapport d'équilibre V2
+    // Rééquilibrage automatique V2
     const dbIngredient = dbIngredients.find(i => i.id === selectedDbId) ?? null;
     const templateTarget = await fetchTemplateTarget(textureId);
-    const cibles = templateTarget?.cibles ?? null;
+    const rawCibles = templateTarget?.cibles ?? null;
+    // PAC non pertinent hors produits glacés
+    const cibles = rawCibles && !FROZEN_TEMPLATES.has(textureId)
+      ? (({ pac: _pac, ...rest }) => rest)(rawCibles)
+      : rawCibles;
     const c = {
       vegan:   contraintes.includes('vegan'),
       lactose: contraintes.includes('lactose') || contraintes.includes('vegan'),
       igbas:   contraintes.includes('igbas'),
     };
 
-    const rapport = cibles
-      ? calculateRecipe({ lignes: recette.lignes, mainIngredient: dbIngredient, cibles, masse, contraintes: c })
-      : null;
+    let finalLignes = recette.lignes;
+    let rapport = null;
+    let journal = [];
+    let warnings = [];
 
-    onRecette({ ...recette, rapport, ingredientDb: dbIngredient });
+    if (cibles) {
+      const balanced = autoBalance({ lignes: recette.lignes, mainIngredient: dbIngredient, cibles, masse, contraintes: c });
+      finalLignes = balanced.lignes;
+      rapport     = balanced.rapport;
+      journal     = balanced.journal;
+      warnings    = balanced.warnings;
+    }
+
+    onRecette({ ...recette, lignes: finalLignes, rapport, journal, warnings, ingredientDb: dbIngredient });
   }
 
   // Grouper les ingrédients Supabase par famille
