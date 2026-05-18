@@ -1,0 +1,379 @@
+/* ── Page shell ─────────────────────────────────────────────────────────── */
+.page {
+  padding: 28px 28px 80px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.headerActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* ── 2-column grid ──────────────────────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 20px;
+  align-items: start;
+}
+
+/* ── Empty state ────────────────────────────────────────────────────────── */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  text-align: center;
+  background: var(--card);
+  border: 2px dashed var(--line);
+  border-radius: 12px;
+  gap: 12px;
+  color: var(--muted);
+}
+
+.emptyIcon {
+  font-size: 36px;
+  opacity: 0.4;
+}
+
+.emptyText {
+  font-size: 14px;
+  max-width: 280px;
+  line-height: 1.5;
+}
+
+/* ── Slots list ─────────────────────────────────────────────────────────── */
+.slotsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  background: none;
+  color: var(--muted);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  margin-top: 4px;
+}
+
+.addBtn:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Slot card ──────────────────────────────────────────────────────────── */
+.slot {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.slotInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.slotNom {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.slotSub {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: capitalize;
+  margin-bottom: 10px;
+}
+
+.slotMasse {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.slotMasseLabel {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.slotMasseInput {
+  width: 72px;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--bg);
+  color: var(--ink);
+  text-align: right;
+}
+
+.slotMasseInput:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.slotMasseUnit {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.slotBase {
+  font-size: 11px;
+  color: var(--muted);
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
+.slotRemove {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--muted);
+  flex-shrink: 0;
+  padding: 0;
+  transition: background 0.1s, border-color 0.1s, color 0.1s;
+}
+
+.slotRemove:hover {
+  background: #fce8d4;
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+/* ── Recap panel ────────────────────────────────────────────────────────── */
+.recap {
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.recapTitle {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+  margin: 0 0 14px;
+}
+
+.recapEmpty {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  padding: 24px 0;
+}
+
+.recapTotal {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+/* ── Modal ──────────────────────────────────────────────────────────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(43, 38, 34, 0.45);
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(2px);
+}
+
+.modal {
+  background: var(--card);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 620px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.16);
+  overflow: hidden;
+}
+
+.modalHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--line);
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.modalTitle {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.modalClose {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+
+.modalClose:hover {
+  background: var(--accent-soft);
+  color: var(--ink);
+  border-color: var(--accent);
+}
+
+.modalFilters {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.modalSearch {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.modalSearch:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.modalChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.modalList {
+  overflow-y: auto;
+  flex: 1;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modalItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.modalItem:hover {
+  background: var(--accent-soft);
+}
+
+.modalItemNom {
+  font-size: 14px;
+  font-weight: 500;
+  flex: 1;
+}
+
+.modalItemSub {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.modalItemCat {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.modalEmpty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recap {
+    position: static;
+    max-height: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .page {
+    padding: 16px 14px 60px;
+  }
+
+  .modal {
+    max-height: 90vh;
+  }
+}
