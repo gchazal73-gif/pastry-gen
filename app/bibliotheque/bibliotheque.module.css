@@ -1,0 +1,438 @@
+/* ── Page shell ─────────────────────────────────────────────────────────── */
+.page {
+  padding: 28px 28px 80px;
+}
+
+.header {
+  margin-bottom: 20px;
+}
+
+/* ── 3-panel grid ───────────────────────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.gridWithDetail {
+  grid-template-columns: 220px 1fr 380px;
+}
+
+/* ── Filter panel ───────────────────────────────────────────────────────── */
+.filterPanel {
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.filterSection {
+  margin-bottom: 20px;
+}
+
+.filterSection:last-child {
+  margin-bottom: 0;
+}
+
+.filterTitle {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+
+.catList {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.catItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 9px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  transition: background 0.1s, color 0.1s;
+}
+
+.catItem:hover {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+.catItemActive {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.catCount {
+  font-size: 10px;
+  background: var(--line);
+  color: var(--muted);
+  padding: 1px 6px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.constraintList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.constraintItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.1s, border-color 0.1s;
+  user-select: none;
+}
+
+.constraintItem:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.constraintItemActive {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.constraintItem input {
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.searchInput {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.searchInput:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+/* ── Cards area ─────────────────────────────────────────────────────────── */
+.cards {
+  min-width: 0;
+}
+
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+/* ── Recipe card ────────────────────────────────────────────────────────── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+
+.card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+.cardSelected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.cardCat {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 5px;
+}
+
+.cardNom {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 3px;
+}
+
+.cardParfum {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 10px;
+  text-transform: capitalize;
+}
+
+.cardBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.cardBadge {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: #e3efe6;
+  color: var(--ok);
+  font-weight: 500;
+}
+
+.cardBadgeWarn {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: #fce8d4;
+  color: var(--warn);
+  font-weight: 500;
+}
+
+/* ── Detail panel ───────────────────────────────────────────────────────── */
+.detailPanel {
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 60px);
+  overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.detailHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.detailNom {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 3px;
+}
+
+.detailSub {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.closeBtn {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--muted);
+  flex-shrink: 0;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+  padding: 0;
+}
+
+.closeBtn:hover {
+  background: var(--accent-soft);
+  color: var(--ink);
+  border-color: var(--accent);
+}
+
+.detailDesc {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 12px 0 18px;
+  line-height: 1.55;
+}
+
+/* ── Mass selector ──────────────────────────────────────────────────────── */
+.massSelector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--bg);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.massLabel {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.massInput {
+  width: 72px;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  color: var(--ink);
+  text-align: right;
+}
+
+.massInput:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.massUnit {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.massPresets {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.massPreset {
+  padding: 4px 9px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--muted);
+  font-family: inherit;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+
+.massPreset:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.massPresetActive {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ── Cuisson / températures grid ────────────────────────────────────────── */
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-top: 4px;
+}
+
+.infoItem {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 9px 12px;
+}
+
+.infoItemFull {
+  grid-column: 1 / -1;
+}
+
+.infoLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+.infoValue {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* ── Tags ───────────────────────────────────────────────────────────────── */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.tag {
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .gridWithDetail {
+    grid-template-columns: 200px 1fr 340px;
+  }
+}
+
+@media (max-width: 900px) {
+  .grid,
+  .gridWithDetail {
+    grid-template-columns: 1fr;
+  }
+
+  .filterPanel {
+    position: static;
+    max-height: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .page {
+    padding: 16px 14px 60px;
+  }
+
+  .detailPanel {
+    position: fixed;
+    inset: 0;
+    top: 0;
+    max-height: none;
+    border-radius: 0;
+    z-index: 300;
+    overflow-y: auto;
+  }
+}
