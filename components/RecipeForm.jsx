@@ -19,26 +19,35 @@ export default function RecipeForm({ onRecette }) {
   const [textureId, setTextureId]     = useState(textureIds[0]);
   const [masse, setMasse]             = useState(800);
   const [contraintes, setContraintes] = useState([]);
+  const [format, setFormat]           = useState('');
 
   // Bibliothèque Supabase
   const [dbIngredients, setDbIngredients]     = useState([]);
   const [selectedDbId, setSelectedDbId]       = useState('');
   const [loadingDb, setLoadingDb]             = useState(false);
 
-  // Charger les ingrédients compatibles avec la texture sélectionnée
+  const tpl     = TEMPLATES[textureId];
+  const hasSupa = !!TEMPLATE_FAMILLES[textureId];
+
+  // Initialiser le format par défaut quand on change de texture
   useEffect(() => {
-    const familles = TEMPLATE_FAMILLES[textureId];
-    if (!familles) return;
+    const firstFormat = tpl.formats ? Object.keys(tpl.formats)[0] : '';
+    setFormat(firstFormat);
+  }, [textureId, tpl]);
+
+  // Charger les ingrédients Supabase uniquement pour les templates qui en ont besoin
+  useEffect(() => {
+    if (!hasSupa) { setDbIngredients([]); setSelectedDbId(''); return; }
     setLoadingDb(true);
     setSelectedDbId('');
-    fetchIngredients({ familles })
+    fetchIngredients({ familles: TEMPLATE_FAMILLES[textureId] })
       .then(data => {
         setDbIngredients(data);
         if (data.length > 0) setSelectedDbId(data[0].id);
       })
       .catch(console.error)
       .finally(() => setLoadingDb(false));
-  }, [textureId]);
+  }, [textureId, hasSupa]);
 
   function toggleContrainte(id) {
     setContraintes(prev =>
@@ -47,24 +56,24 @@ export default function RecipeForm({ onRecette }) {
   }
 
   async function handleGenerer() {
-    if (!selectedDbId) return;
-
-    // Mapping vers l'ID V1 (PARFUMS)
-    const parfumId = SUPABASE_TO_PARFUM_V1[selectedDbId];
-    if (!parfumId || !PARFUMS[parfumId]) {
-      alert(`Ingrédient "${selectedDbId}" non mappé vers V1 — recette non générée.`);
-      return;
-    }
-
-    // Vérifier compatibilité avec le template
-    const tpl = TEMPLATES[textureId];
-    if (!tpl.parfumsCompat.includes(parfumId)) {
-      alert(`Ce parfum n'est pas encore compatible avec le template "${tpl.label}".`);
-      return;
+    let parfumId;
+    if (hasSupa) {
+      if (!selectedDbId) return;
+      parfumId = SUPABASE_TO_PARFUM_V1[selectedDbId];
+      if (!parfumId || !PARFUMS[parfumId]) {
+        alert(`Ingrédient "${selectedDbId}" non mappé vers V1 — recette non générée.`);
+        return;
+      }
+      if (!tpl.parfumsCompat.includes(parfumId)) {
+        alert(`Ce parfum n'est pas encore compatible avec le template "${tpl.label}".`);
+        return;
+      }
+    } else {
+      parfumId = tpl.parfumsCompat[0];
     }
 
     // Génération V1
-    const recette = genererRecette({ textureId, parfumId, masse, contraintes });
+    const recette = genererRecette({ textureId, parfumId, masse, contraintes, format: format || null });
 
     // Rééquilibrage automatique V2
     const dbIngredient = dbIngredients.find(i => i.id === selectedDbId) ?? null;
@@ -77,7 +86,9 @@ export default function RecipeForm({ onRecette }) {
     const c = {
       vegan:   contraintes.includes('vegan'),
       lactose: contraintes.includes('lactose') || contraintes.includes('vegan'),
+      gluten:  contraintes.includes('gluten'),
       igbas:   contraintes.includes('igbas'),
+      format:  format || null,
     };
 
     let finalLignes = recette.lignes;
@@ -117,29 +128,42 @@ export default function RecipeForm({ onRecette }) {
         </select>
       </div>
 
-      <div className="field">
-        <label htmlFor="parfum">
-          Ingrédient principal
-          {loadingDb && <span style={{ color: 'var(--muted)', fontWeight: 400, marginLeft: 8 }}>chargement…</span>}
-        </label>
-        <select
-          id="parfum"
-          value={selectedDbId}
-          onChange={e => setSelectedDbId(e.target.value)}
-          disabled={loadingDb}
-        >
-          {dbIngredients.length === 0 && !loadingDb && (
-            <option value="">— aucun ingrédient disponible —</option>
-          )}
-          {famillesPresentes.map(fam => (
-            <optgroup key={fam} label={FAMILLE_LABELS_FR[fam] ?? fam}>
-              {groupes[fam].map(ing => (
-                <option key={ing.id} value={ing.id}>{ing.nom_fr}</option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
-      </div>
+      {hasSupa && (
+        <div className="field">
+          <label htmlFor="parfum">
+            Ingrédient principal
+            {loadingDb && <span style={{ color: 'var(--muted)', fontWeight: 400, marginLeft: 8 }}>chargement…</span>}
+          </label>
+          <select
+            id="parfum"
+            value={selectedDbId}
+            onChange={e => setSelectedDbId(e.target.value)}
+            disabled={loadingDb}
+          >
+            {dbIngredients.length === 0 && !loadingDb && (
+              <option value="">— aucun ingrédient disponible —</option>
+            )}
+            {famillesPresentes.map(fam => (
+              <optgroup key={fam} label={FAMILLE_LABELS_FR[fam] ?? fam}>
+                {groupes[fam].map(ing => (
+                  <option key={ing.id} value={ing.id}>{ing.nom_fr}</option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {tpl.formats && (
+        <div className="field">
+          <label htmlFor="format">Format</label>
+          <select id="format" value={format} onChange={e => setFormat(e.target.value)}>
+            {Object.entries(tpl.formats).map(([id, label]) => (
+              <option key={id} value={id}>{label}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="field">
         <label htmlFor="masse">Masse cible (g)</label>
@@ -176,7 +200,7 @@ export default function RecipeForm({ onRecette }) {
         </div>
       </div>
 
-      <button className="primary" onClick={handleGenerer} disabled={loadingDb || !selectedDbId}>
+      <button className="primary" onClick={handleGenerer} disabled={loadingDb || (hasSupa && !selectedDbId)}>
         Générer la recette
       </button>
     </div>

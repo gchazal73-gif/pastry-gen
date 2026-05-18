@@ -114,7 +114,7 @@ export default function RecipeFiche({ recette }) {
     );
   }
 
-  const { texture, description, parfum, masse, contraintes: c, badges, lignes, process: proc, date, rapport, ingredientDb, journal = [], warnings = [] } = recette;
+  const { texture, description, parfum, masse, formatLabel, contraintes: c, badges, lignes, process: proc, date, rapport, ingredientDb, journal = [], warnings = [] } = recette;
   const totalG = lignes.reduce((s, l) => s + l.g, 0);
 
   const badgesRendus = badges.length > 0
@@ -145,11 +145,12 @@ export default function RecipeFiche({ recette }) {
         {/* En-tête */}
         <div className="fiche-head">
           <div className="fiche-title">
-            <h3>{texture} {parfum}</h3>
+            <h3>{[texture, parfum].filter(Boolean).join(' ')}</h3>
             <div className="sub">{description}</div>
           </div>
           <div className="fiche-meta">
             <div><strong>{formatG(masse)}</strong> de produit fini</div>
+            {formatLabel && <div>{formatLabel}</div>}
             <div>Édité le {date}</div>
           </div>
         </div>
