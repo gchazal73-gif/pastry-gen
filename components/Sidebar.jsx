@@ -13,15 +13,19 @@ import {
   ChevronLeft,
   ChevronRight,
   CookingPot,
+  BookOpen,
+  LayoutDashboard,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { href: '/',            label: 'Créer une recette',       icon: ChefHat,        active: true  },
-  { href: '/ingredients', label: 'Bibliothèque',             icon: Library,        active: true  },
-  { href: '/templates',   label: 'Templates & textures',     icon: LayoutTemplate, active: false },
-  { href: '/recettes',    label: 'Mes recettes',             icon: Bookmark,       active: false },
-  { href: '/profils',     label: 'Profils & contraintes',    icon: User,           active: false },
-  { href: '/parametres',  label: 'Paramètres',               icon: Settings,       active: false },
+  { href: '/',              label: 'Créer une recette',       icon: ChefHat,         active: true  },
+  { href: '/ingredients',   label: 'Bibliothèque',             icon: Library,         active: true  },
+  { href: '/bibliotheque',  label: 'Bibliothèque de recettes', icon: BookOpen,        active: true  },
+  { href: '/plan-de-travail', label: 'Plan de travail',        icon: LayoutDashboard, active: true  },
+  { href: '/templates',     label: 'Templates & textures',     icon: LayoutTemplate,  active: false },
+  { href: '/recettes',      label: 'Mes recettes',             icon: Bookmark,        active: false },
+  { href: '/profils',       label: 'Profils & contraintes',    icon: User,            active: false },
+  { href: '/parametres',    label: 'Paramètres',               icon: Settings,        active: false },
 ];
 
 const STORAGE_KEY = 'pastry-gen-sidebar-collapsed';
