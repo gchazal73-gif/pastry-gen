@@ -1,0 +1,218 @@
+/* ── Shell ──────────────────────────────────────────────────────────────── */
+.shell {
+  min-height: 100vh;
+  background: #ece9e4;
+}
+
+/* ── Barre de contrôle (masquée à l'impression) ─────────────────────────── */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 24px;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+}
+
+.modeToggle {
+  display: flex;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.modeBtn {
+  padding: 7px 16px;
+  font-size: 13px;
+  font-family: inherit;
+  border: none;
+  background: #fff;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.modeBtn:hover {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+.modeActive {
+  padding: 7px 16px;
+  font-size: 13px;
+  font-family: inherit;
+  border: none;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.printBtn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 18px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.12s;
+}
+
+.printBtn:hover {
+  background: #6f4730;
+}
+
+/* ── Zone imprimable ────────────────────────────────────────────────────── */
+.printArea {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 28px 24px 60px;
+}
+
+/* ── Fiche technique ────────────────────────────────────────────────────── */
+.fiche {
+  background: #fff;
+  padding: 36px 40px;
+  margin-bottom: 24px;
+  border-radius: 4px;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.08);
+  break-after: page;
+  page-break-after: always;
+}
+
+.ficheLast {
+  break-after: avoid;
+  page-break-after: avoid;
+  margin-bottom: 0;
+}
+
+.ficheHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 14px;
+  margin-bottom: 22px;
+}
+
+.ficheTitre {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px;
+}
+
+.ficheSous {
+  font-size: 13px;
+  color: var(--muted);
+  text-transform: capitalize;
+}
+
+.ficheMeta {
+  text-align: right;
+  font-size: 12px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.ficheMasseVal {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  display: block;
+  margin-bottom: 3px;
+}
+
+/* ── Bon d'économat ─────────────────────────────────────────────────────── */
+.economat {
+  background: #fff;
+  padding: 36px 40px;
+  border-radius: 4px;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.08);
+}
+
+.economHeader {
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 14px;
+  margin-bottom: 22px;
+}
+
+.economTitle {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 8px;
+}
+
+.economMeta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.economPreps {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+.economPreps li {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 3px;
+}
+
+.checkCol {
+  text-align: center;
+  width: 32px;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+/* ── @media print ───────────────────────────────────────────────────────── */
+@media print {
+  .controls { display: none !important; }
+
+  .shell { background: #fff; }
+
+  .printArea {
+    max-width: none;
+    padding: 0;
+  }
+
+  .fiche,
+  .economat {
+    box-shadow: none;
+    border-radius: 0;
+    padding: 20mm 20mm 16mm;
+    margin-bottom: 0;
+  }
+
+  .fiche {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .ficheLast {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+}

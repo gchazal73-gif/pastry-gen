@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, FileText, ShoppingCart } from 'lucide-react';
 import { RECETTES } from '../../lib/recettes/index.js';
 import SlotCard      from '../../components/plan/SlotCard.jsx';
 import RecapMatieres from '../../components/plan/RecapMatieres.jsx';
@@ -73,10 +73,20 @@ export default function PlanDeTravailPage() {
         </div>
         <div className={styles.headerActions}>
           {slots.length > 0 && (
-            <button className="secondary" onClick={clearPlan} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Trash2 size={14} strokeWidth={2} />
-              Vider
-            </button>
+            <>
+              <button className="secondary" style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => window.open('/plan-de-travail/imprimer#fiches', '_blank')}>
+                <FileText size={14} strokeWidth={2} />
+                Fiches
+              </button>
+              <button className="secondary" style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => window.open('/plan-de-travail/imprimer#economat', '_blank')}>
+                <ShoppingCart size={14} strokeWidth={2} />
+                Économat
+              </button>
+              <button className="secondary" onClick={clearPlan} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Trash2 size={14} strokeWidth={2} />
+                Vider
+              </button>
+            </>
           )}
           <button className="primary" style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setModalOpen(true)}>
             <Plus size={16} strokeWidth={2.5} />

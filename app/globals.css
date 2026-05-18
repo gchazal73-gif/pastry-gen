@@ -484,4 +484,7 @@ ol.process li { margin-bottom: 6px; }
   table.ingredients { page-break-inside: avoid; }
   .section { page-break-inside: avoid; }
   body, .fiche { color: #000; }
+  /* Masquer le shell de navigation lors de l'impression */
+  .sidebar, .mobile-topbar { display: none !important; }
+  .app-main { overflow: visible !important; }
 }
