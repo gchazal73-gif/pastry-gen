@@ -8,11 +8,11 @@ export default function Home() {
   const [recette, setRecette] = useState(null);
 
   return (
-    <div className="wrap">
-      <header>
-        <h1>Générateur de recettes pâtissières</h1>
-        <p>Mousse aux fruits · Crémeux</p>
-      </header>
+    <div className="page-content">
+      <div className="page-header">
+        <h1 className="page-title">Créer une recette</h1>
+        <p className="page-subtitle">Mousse aux fruits · Crémeux · Ganache montée · Sorbet</p>
+      </div>
       <div className="layout">
         <RecipeForm onRecette={setRecette} />
         <RecipeFiche recette={recette} />

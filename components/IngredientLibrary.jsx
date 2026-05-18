@@ -119,11 +119,11 @@ export default function IngredientLibrary() {
   }, [ingredients, famFilters, search]);
 
   return (
-    <div className="wrap">
-      <header>
-        <h1>Bibliothèque d'ingrédients</h1>
-        <p>{loading ? 'Chargement…' : `${ingredients.length} ingrédients`}</p>
-      </header>
+    <div className="page-content">
+      <div className="page-header">
+        <h1 className="page-title">Bibliothèque d'ingrédients</h1>
+        <p className="page-subtitle">{loading ? 'Chargement…' : `${ingredients.length} ingrédients · données CIQUAL / Bordas`}</p>
+      </div>
 
       <div className="lib-toolbar">
         <input
