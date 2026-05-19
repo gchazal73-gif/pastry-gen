@@ -32,13 +32,45 @@ const PRESETS = [
   { label: '×2',   mult: 2   },
 ];
 
+function IngredientsTable({ ingredients, total }) {
+  return (
+    <table className="ingredients">
+      <thead>
+        <tr>
+          <th>Ingrédient</th>
+          <th style={{ textAlign: 'right' }}>g</th>
+          <th style={{ textAlign: 'right' }}>%</th>
+        </tr>
+      </thead>
+      <tbody>
+        {ingredients.map((ing, i) => (
+          <tr key={i}>
+            <td>
+              {ing.nom}
+              <span style={{ fontSize: 10, color: 'var(--muted)', marginLeft: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                {ROLE_LABELS[ing.role] ?? ing.role}
+              </span>
+            </td>
+            <td className="qty">{ing.g_calc} g</td>
+            <td className="pct">{ing.pct} %</td>
+          </tr>
+        ))}
+      </tbody>
+      <tfoot>
+        <tr className="total">
+          <td>Total</td>
+          <td className="qty">{total} g</td>
+          <td className="pct">100 %</td>
+        </tr>
+      </tfoot>
+    </table>
+  );
+}
+
 export default function RecetteDetail({ recette, masse, setMasse, onClose }) {
   const masseNum = Number(masse) > 0 ? Number(masse) : recette.masse_totale_g;
-
-  const ingredients = recette.ingredients.map(ing => ({
-    ...ing,
-    g_calc: Math.round(ing.pct / 100 * masseNum),
-  }));
+  const isAssemblage = recette.type === 'assemblage';
+  const ratio = masseNum / recette.masse_totale_g;
 
   const { temperature_c, duree_min, mode } = recette.cuisson;
   const { service_c, conservation_c } = recette.temperatures;
@@ -98,75 +130,86 @@ export default function RecetteDetail({ recette, masse, setMasse, onClose }) {
         </div>
       </div>
 
-      {/* Ingrédients */}
-      <div className="section">
-        <h4>Ingrédients</h4>
-        <table className="ingredients">
-          <thead>
-            <tr>
-              <th>Ingrédient</th>
-              <th style={{ textAlign: 'right' }}>g</th>
-              <th style={{ textAlign: 'right' }}>%</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ingredients.map((ing, i) => (
-              <tr key={i}>
-                <td>
-                  {ing.nom}
-                  <span style={{ fontSize: 10, color: 'var(--muted)', marginLeft: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    {ROLE_LABELS[ing.role] ?? ing.role}
-                  </span>
-                </td>
-                <td className="qty">{ing.g_calc} g</td>
-                <td className="pct">{ing.pct} %</td>
-              </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr className="total">
-              <td>Total</td>
-              <td className="qty">{masseNum} g</td>
-              <td className="pct">100 %</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
+      {isAssemblage ? (
+        /* ── Vue assemblage : un accordion par composant ── */
+        <>
+          {recette.composants.map((comp, ci) => {
+            const compMasse = Math.round(comp.masse_g * ratio);
+            const compIngs = comp.ingredients.map(ing => ({
+              ...ing,
+              g_calc: Math.round(ing.pct / 100 * compMasse),
+            }));
+            return (
+              <div key={ci} className="section">
+                <h4>{comp.nom} <span style={{ fontWeight: 400, color: 'var(--muted)' }}>— {compMasse} g</span></h4>
+                <IngredientsTable ingredients={compIngs} total={compMasse} />
+                <ol className="process" style={{ marginTop: 8 }}>
+                  {comp.procede.map((step, i) => <li key={i}>{step}</li>)}
+                </ol>
+              </div>
+            );
+          })}
 
-      {/* Procédé */}
-      <div className="section">
-        <h4>Procédé</h4>
-        <ol className="process">
-          {recette.procede.map((step, i) => (
-            <li key={i}>{step}</li>
-          ))}
-        </ol>
-      </div>
+          {recette.montage?.length > 0 && (
+            <div className="section">
+              <h4>Montage</h4>
+              <ol className="process">
+                {recette.montage.map((step, i) => <li key={i}>{step}</li>)}
+              </ol>
+            </div>
+          )}
+        </>
+      ) : (
+        /* ── Vue préparation simple ── */
+        <>
+          <div className="section">
+            <h4>Ingrédients</h4>
+            <IngredientsTable
+              ingredients={recette.ingredients.map(ing => ({
+                ...ing,
+                g_calc: Math.round(ing.pct / 100 * masseNum),
+              }))}
+              total={masseNum}
+            />
+          </div>
+
+          <div className="section">
+            <h4>Procédé</h4>
+            <ol className="process">
+              {recette.procede.map((step, i) => (
+                <li key={i}>{step}</li>
+              ))}
+            </ol>
+          </div>
+        </>
+      )}
 
       {/* Cuisson */}
-      <div className="section">
-        <h4>Cuisson</h4>
-        <div className={styles.infoGrid}>
-          {temperature_c && (
-            <div className={styles.infoItem}>
-              <div className={styles.infoLabel}>Température</div>
-              <div className={styles.infoValue}>{temperature_c} °C</div>
-            </div>
-          )}
-          {duree_min && (
-            <div className={styles.infoItem}>
-              <div className={styles.infoLabel}>Durée</div>
-              <div className={styles.infoValue}>{duree_min} min</div>
-            </div>
-          )}
-          {mode && (
-            <div className={`${styles.infoItem} ${!temperature_c ? '' : styles.infoItemFull}`}>
-              <div className={styles.infoLabel}>Mode</div>
-              <div className={styles.infoValue}>{mode}</div>
-            </div>
-          )}
+      {(temperature_c || duree_min || mode) && (
+        <div className="section">
+          <h4>Cuisson</h4>
+          <div className={styles.infoGrid}>
+            {temperature_c && (
+              <div className={styles.infoItem}>
+                <div className={styles.infoLabel}>Température</div>
+                <div className={styles.infoValue}>{temperature_c} °C</div>
+              </div>
+            )}
+            {duree_min && (
+              <div className={styles.infoItem}>
+                <div className={styles.infoLabel}>Durée</div>
+                <div className={styles.infoValue}>{duree_min} min</div>
+              </div>
+            )}
+            {mode && (
+              <div className={`${styles.infoItem} ${!temperature_c ? '' : styles.infoItemFull}`}>
+                <div className={styles.infoLabel}>Mode</div>
+                <div className={styles.infoValue}>{mode}</div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Températures */}
       {(service_c || conservation_c) && (

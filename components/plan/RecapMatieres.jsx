@@ -1,6 +1,24 @@
 import { useMemo } from 'react';
 import styles from '../../app/plan-de-travail/plan.module.css';
 
+function accumIngredients(recette, masse, totaux) {
+  if (recette.type === 'assemblage') {
+    const ratio = masse / recette.masse_totale_g;
+    recette.composants.forEach(comp => {
+      const compMasse = comp.masse_g * ratio;
+      comp.ingredients.forEach(ing => {
+        const g = Math.round(ing.pct / 100 * compMasse);
+        totaux[ing.nom] = (totaux[ing.nom] ?? 0) + g;
+      });
+    });
+  } else {
+    recette.ingredients.forEach(ing => {
+      const g = Math.round(ing.pct / 100 * masse);
+      totaux[ing.nom] = (totaux[ing.nom] ?? 0) + g;
+    });
+  }
+}
+
 export default function RecapMatieres({ slots, recettesMap }) {
   const recap = useMemo(() => {
     const totaux = {};
@@ -8,10 +26,7 @@ export default function RecapMatieres({ slots, recettesMap }) {
       const recette = recettesMap[slot.recetteId];
       if (!recette) return;
       const masse = Number(slot.masse) > 0 ? Number(slot.masse) : recette.masse_totale_g;
-      recette.ingredients.forEach(ing => {
-        const g = Math.round(ing.pct / 100 * masse);
-        totaux[ing.nom] = (totaux[ing.nom] ?? 0) + g;
-      });
+      accumIngredients(recette, masse, totaux);
     });
     return Object.entries(totaux).sort((a, b) => b[1] - a[1]);
   }, [slots, recettesMap]);

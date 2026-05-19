@@ -20,6 +20,11 @@ export default function SlotCard({ slot, recette, onMasseChange, onRemove }) {
       <div className={styles.slotInfo}>
         <div className={styles.slotNom}>{recette.nom}</div>
         <div className={styles.slotSub}>{sousLabel}{recette.parfum_principal ? ` · ${recette.parfum_principal}` : ''}</div>
+        {recette.type === 'assemblage' && recette.composants?.length > 0 && (
+          <div className={styles.slotSub} style={{ opacity: 0.7, fontStyle: 'italic' }}>
+            {recette.composants.map(c => c.nom).join(' · ')}
+          </div>
+        )}
         <div className={styles.slotMasse}>
           <span className={styles.slotMasseLabel}>Masse</span>
           <input
