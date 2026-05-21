@@ -15,12 +15,14 @@ import {
   CookingPot,
   BookOpen,
   LayoutDashboard,
+  Circle,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { href: '/',              label: 'Créer une recette',       icon: ChefHat,         active: true  },
   { href: '/ingredients',   label: 'Bibliothèque',             icon: Library,         active: true  },
   { href: '/bibliotheque',  label: 'Bibliothèque de recettes', icon: BookOpen,        active: true  },
+  { href: '/moules',        label: 'Moules',                   icon: Circle,          active: true  },
   { href: '/plan-de-travail', label: 'Plan de travail',        icon: LayoutDashboard, active: true  },
   { href: '/templates',     label: 'Templates & textures',     icon: LayoutTemplate,  active: false },
   { href: '/recettes',      label: 'Mes recettes',             icon: Bookmark,        active: false },
