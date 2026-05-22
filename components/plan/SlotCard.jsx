@@ -12,7 +12,7 @@ const SOUS_CAT_LABELS = {
   croustillant_praline: 'Croustillant',
 };
 
-export default function SlotCard({ slot, recette, onMasseChange, onRemove }) {
+export default function SlotCard({ slot, recette, onMasseChange, onRemove, kcalInfo }) {
   const sousLabel = SOUS_CAT_LABELS[recette.sous_categorie] ?? recette.sous_categorie;
 
   return (
@@ -44,6 +44,11 @@ export default function SlotCard({ slot, recette, onMasseChange, onRemove }) {
           <span className={styles.slotMasseUnit}>g</span>
           <span className={styles.slotBase}>(base {recette.masse_totale_g} g)</span>
         </div>
+        {kcalInfo && (
+          <div className={styles.slotKcal}>
+            {kcalInfo.kcal_100g} kcal/100g · {kcalInfo.contribution_pct_kcal} % des kcal
+          </div>
+        )}
       </div>
 
       <button

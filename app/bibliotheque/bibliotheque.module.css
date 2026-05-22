@@ -353,6 +353,38 @@
   border-color: var(--accent);
 }
 
+/* ── Ajouter au plan ────────────────────────────────────────────────────── */
+.ajouterBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 14px;
+  margin-bottom: 20px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.ajouterBtn:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+}
+
+.ajouterBtnAdded {
+  background: #e3efe6;
+  border-color: var(--ok);
+  color: var(--ok);
+  cursor: default;
+}
+
 /* ── Cuisson / températures grid ────────────────────────────────────────── */
 .infoGrid {
   display: grid;
@@ -400,6 +432,165 @@
   background: var(--bg);
   border: 1px solid var(--line);
   color: var(--muted);
+}
+
+/* ── Nutrition ──────────────────────────────────────────────────────────── */
+.nutritionSection {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+  margin-top: 4px;
+}
+
+.nutritionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.profilSelect {
+  font-size: 11px;
+  font-family: inherit;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.profilSelect:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.nutritionTable td,
+.nutritionTable th {
+  font-size: 12px;
+}
+
+/* AJR level colors */
+.ajrLow      { color: var(--ok); }
+.ajrModerate { color: #b45309; }
+.ajrHigh     { color: #c2410c; }
+.ajrCritical { color: #dc2626; font-weight: 600; }
+
+/* AJR bar chart */
+.ajrChart {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ajrChartLabel {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.ajrRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.ajrBarLabel {
+  font-size: 11px;
+  color: var(--muted);
+  width: 58px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.ajrBarTrack {
+  flex: 1;
+  height: 6px;
+  background: var(--line);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.ajrBarFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.25s ease;
+  background: var(--ok);
+}
+
+.ajrBarFill.ajrModerate { background: #f59e0b; }
+.ajrBarFill.ajrHigh     { background: #f97316; }
+.ajrBarFill.ajrCritical { background: #ef4444; }
+
+.ajrOverflow {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 3px;
+  height: 100%;
+  background: #dc2626;
+  border-radius: 0 3px 3px 0;
+}
+
+.ajrBarPct {
+  font-size: 10px;
+  width: 38px;
+  text-align: right;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Breakdown accordéon */
+.breakdown {
+  margin-top: 12px;
+}
+
+.breakdownToggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transition: color 0.1s;
+}
+
+.breakdownToggle:hover { color: var(--ink); }
+
+.breakdownTable {
+  margin-top: 8px;
+}
+
+.breakdownTable td,
+.breakdownTable th {
+  font-size: 11px;
+}
+
+/* Warnings */
+.nutritionWarnings {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nutritionWarning {
+  font-size: 11px;
+  color: var(--warn);
+  line-height: 1.4;
 }
 
 /* ── Responsive ─────────────────────────────────────────────────────────── */

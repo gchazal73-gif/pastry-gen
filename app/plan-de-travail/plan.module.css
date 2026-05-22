@@ -178,12 +178,19 @@
   color: var(--warn);
 }
 
-/* ── Recap panel ────────────────────────────────────────────────────────── */
-.recap {
+/* ── Right panel (sticky wrapper for RecapMatieres + RecapNutrition) ─────── */
+.rightPanel {
   position: sticky;
   top: 20px;
   max-height: calc(100vh - 80px);
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Recap panel ────────────────────────────────────────────────────────── */
+.recap {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -356,13 +363,581 @@
   font-size: 13px;
 }
 
+/* ── Slot mini-indicateur kcal ───────────────────────────────────────────── */
+.slotKcal {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Nutrition panel ─────────────────────────────────────────────────────── */
+.nutriPanel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.nutriHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.nutriProfilSelect {
+  font-size: 11px;
+  font-family: inherit;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.nutriProfilSelect:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.nutriTable td,
+.nutriTable th {
+  font-size: 12px;
+}
+
+/* AJR level colors */
+.ajrLow      { color: var(--ok); }
+.ajrModerate { color: #b45309; }
+.ajrHigh     { color: #c2410c; }
+.ajrCritical { color: #dc2626; font-weight: 600; }
+
+/* AJR bar chart */
+.ajrChart {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ajrChartLabel {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.ajrRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.ajrBarLabel {
+  font-size: 11px;
+  color: var(--muted);
+  width: 58px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.ajrBarTrack {
+  flex: 1;
+  height: 6px;
+  background: var(--line);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.ajrBarFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.25s ease;
+  background: var(--ok);
+}
+
+.ajrBarFill.ajrModerate { background: #f59e0b; }
+.ajrBarFill.ajrHigh     { background: #f97316; }
+.ajrBarFill.ajrCritical { background: #ef4444; }
+
+.ajrOverflow {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 3px;
+  height: 100%;
+  background: #dc2626;
+  border-radius: 0 3px 3px 0;
+}
+
+.ajrBarPct {
+  font-size: 10px;
+  width: 38px;
+  text-align: right;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Breakdown accordéon */
+.nutriBreakdown {
+  margin-top: 12px;
+}
+
+.nutriBreakdownToggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transition: color 0.1s;
+}
+
+.nutriBreakdownToggle:hover { color: var(--ink); }
+
+.nutriBreakdownTable {
+  margin-top: 8px;
+}
+
+.nutriBreakdownTable td,
+.nutriBreakdownTable th {
+  font-size: 11px;
+}
+
+/* Warnings */
+.nutriWarnings {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nutriWarning {
+  font-size: 11px;
+  color: var(--warn);
+  line-height: 1.4;
+}
+
+/* ── Production panel ────────────────────────────────────────────────────── */
+.prodPanel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.prodPanelTitle {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+  margin: 0;
+}
+
+.prodSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.prodSectionTitle {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+.prodEmptyMoules {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* Moule row */
+.prodMouleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.prodMouleInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.prodMouleNom {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.prodMouleVol {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.prodMouleControls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.prodQtyInput {
+  width: 46px;
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  text-align: center;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.prodQtyInput:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.prodMouleRemove {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+
+.prodMouleRemove:hover {
+  background: #fce8d4;
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+.prodAddMoule {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border: 1px dashed var(--line);
+  border-radius: 7px;
+  background: none;
+  color: var(--muted);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.prodAddMoule:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Perte row */
+.prodPerteRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.prodPerteLabel {
+  font-size: 12px;
+  color: var(--muted);
+  flex: 1;
+}
+
+.prodPerteInput {
+  width: 46px;
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  text-align: center;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.prodPerteInput:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.prodPerteUnit {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Stack items */
+.stackItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 8px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: grab;
+  user-select: none;
+  transition: border-color 0.1s, background 0.1s, opacity 0.1s;
+}
+
+.stackItem:active { cursor: grabbing; }
+
+.stackItemDragging {
+  opacity: 0.4;
+}
+
+.stackItemOver {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.stackHandle {
+  color: var(--muted);
+  flex-shrink: 0;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+}
+
+/* Assignation badges */
+.stackAssign {
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.1s;
+}
+
+.stackAssign:hover { opacity: 0.75; }
+
+.stackAssignCouche {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.stackAssignHabillage {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.stackAssignLibre {
+  background: #f3e8ff;
+  color: #7e22ce;
+}
+
+.stackNom {
+  flex: 1;
+  font-size: 11px;
+  font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stackEpaisseur {
+  width: 42px;
+  padding: 3px 5px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: inherit;
+  text-align: center;
+  background: var(--bg);
+  color: var(--ink);
+  flex-shrink: 0;
+}
+
+.stackEpaisseur:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.stackMasseArea {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.stackMasse {
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  min-width: 36px;
+  text-align: right;
+}
+
+.stackMasseOverridden {
+  color: var(--accent);
+}
+
+.prodMasseOverrideInput {
+  width: 52px;
+  padding: 3px 5px;
+  border: 2px solid var(--accent);
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: inherit;
+  text-align: center;
+  background: var(--bg);
+  color: var(--accent);
+  font-weight: 600;
+  outline: none;
+}
+
+.stackMasseBtn {
+  background: none;
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  border-radius: 3px;
+  transition: color 0.1s, background 0.1s;
+}
+
+.stackMasseBtn:hover {
+  color: var(--ink);
+  background: var(--accent-soft);
+}
+
+/* Stack height indicator */
+.prodStackIndicator {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.prodStackIndicatorLabel {
+  font-size: 10px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.prodStackBar {
+  height: 5px;
+  background: var(--line);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.prodStackBarFill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--ok);
+  transition: width 0.2s;
+}
+
+.prodStackBarOver {
+  background: var(--warn);
+}
+
+/* Totaux */
+.prodTotals {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+}
+
+.prodTotalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--ink);
+}
+
+.prodTotalVal {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Warnings */
+.prodWarnings {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.prodWarningsToggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--warn);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+
+.prodWarning {
+  font-size: 11px;
+  color: var(--warn);
+  line-height: 1.4;
+  padding-left: 4px;
+}
+
 /* ── Responsive ─────────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .grid {
     grid-template-columns: 1fr;
   }
 
-  .recap {
+  .rightPanel {
     position: static;
     max-height: none;
   }

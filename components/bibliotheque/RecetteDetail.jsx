@@ -1,7 +1,15 @@
 'use client';
 
-import { X } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { X, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import styles from '../../app/bibliotheque/bibliotheque.module.css';
+import { computeRecipeNutrition } from '../../lib/nutrition.js';
+
+const STORAGE_KEY = 'pastry-gen-plan';
+
+function genUid() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
 
 const ROLE_LABELS = {
   mg:        'Matière grasse',
@@ -68,9 +76,27 @@ function IngredientsTable({ ingredients, total }) {
 }
 
 export default function RecetteDetail({ recette, masse, setMasse, onClose }) {
+  const [added,       setAdded]       = useState(false);
+  const [profilAJR,   setProfilAJR]   = useState('adulte_2000kcal');
+  const [breakdownOpen, setBreakdownOpen] = useState(false);
+
   const masseNum = Number(masse) > 0 ? Number(masse) : recette.masse_totale_g;
+
+  const nutrition = useMemo(() => computeRecipeNutrition(recette, profilAJR), [recette, profilAJR]);
   const isAssemblage = recette.type === 'assemblage';
   const ratio = masseNum / recette.masse_totale_g;
+
+  function ajouterAuPlan() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const data = raw ? JSON.parse(raw) : { slots: [] };
+      const slots = data.slots ?? [];
+      slots.push({ uid: genUid(), recetteId: recette.id, masse: masseNum });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ slots }));
+      setAdded(true);
+      setTimeout(() => setAdded(false), 1800);
+    } catch {}
+  }
 
   const { temperature_c, duree_min, mode } = recette.cuisson;
   const { service_c, conservation_c } = recette.temperatures;
@@ -129,6 +155,14 @@ export default function RecetteDetail({ recette, masse, setMasse, onClose }) {
           })}
         </div>
       </div>
+
+      <button
+        className={`${styles.ajouterBtn}${added ? ` ${styles.ajouterBtnAdded}` : ''}`}
+        onClick={ajouterAuPlan}
+        disabled={added}
+      >
+        {added ? '✓ Ajouté au plan' : <><Plus size={14} strokeWidth={2.5} />Ajouter au plan</>}
+      </button>
 
       {isAssemblage ? (
         /* ── Vue assemblage : un accordion par composant ── */
@@ -263,6 +297,160 @@ export default function RecetteDetail({ recette, masse, setMasse, onClose }) {
           <div className="note">{recette.note_concepteur}</div>
         </div>
       )}
+
+      {/* Valeurs nutritionnelles */}
+      {nutrition.per_100g && (
+        <div className={`section ${styles.nutritionSection}`}>
+          <div className={styles.nutritionHeader}>
+            <h4 style={{ margin: 0 }}>Pour 100 g de produit fini</h4>
+            <select
+              className={styles.profilSelect}
+              value={profilAJR}
+              onChange={e => setProfilAJR(e.target.value)}
+            >
+              <option value="adulte_2000kcal">Adulte 2000 kcal</option>
+              <option value="femme_1800kcal">Femme 1800 kcal</option>
+            </select>
+          </div>
+
+          <NutritionTable per_100g={nutrition.per_100g} ajr={nutrition.ajr_pct_per_100g} />
+          <AJRBarChart ajr={nutrition.ajr_pct_per_100g} />
+
+          {nutrition.breakdown_par_composant.length > 1 && (
+            <div className={styles.breakdown}>
+              <button
+                className={styles.breakdownToggle}
+                onClick={() => setBreakdownOpen(o => !o)}
+              >
+                Détail par composant
+                {breakdownOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+              </button>
+              {breakdownOpen && (
+                <table className={`ingredients ${styles.breakdownTable}`}>
+                  <thead>
+                    <tr>
+                      <th>Composant</th>
+                      <th style={{ textAlign: 'right' }}>Masse</th>
+                      <th style={{ textAlign: 'right' }}>%</th>
+                      <th style={{ textAlign: 'right' }}>kcal/100g</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {nutrition.breakdown_par_composant.map((b, i) => (
+                      <tr key={i}>
+                        <td>{b.nom}</td>
+                        <td className="qty">{b.masse_g} g</td>
+                        <td className="pct">{b.masse_pct} %</td>
+                        <td className="qty">{b.kcal_100g}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+
+          {nutrition.warnings.length > 0 && (
+            <div className={styles.nutritionWarnings}>
+              {nutrition.warnings.map((w, i) => (
+                <div key={i} className={styles.nutritionWarning}>⚠ {w}</div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Sous-composants nutrition ─────────────────────────────────────────────────
+
+const AJR_LEVEL_CLASS = {
+  low:      styles.ajrLow,
+  moderate: styles.ajrModerate,
+  high:     styles.ajrHigh,
+  critical: styles.ajrCritical,
+};
+
+function ajrLevel(pct) {
+  if (pct < 7.5) return 'low';
+  if (pct < 15)  return 'moderate';
+  if (pct < 30)  return 'high';
+  return 'critical';
+}
+
+const NUTRITION_ROWS = [
+  { key: 'energie',  label: 'Énergie',             unit: 'kcal', valueKey: 'kcal',              indent: false },
+  { key: 'lipides',  label: 'Lipides',              unit: 'g',    valueKey: 'lipides_g',         indent: false },
+  { key: 'satures',  label: 'dont acides saturés',  unit: 'g',    valueKey: 'lipides_satures_g', indent: true  },
+  { key: 'glucides', label: 'Glucides',              unit: 'g',    valueKey: 'glucides_g',        indent: false },
+  { key: 'sucres',   label: 'dont sucres',           unit: 'g',    valueKey: 'sucres_g',          indent: true  },
+  { key: 'protides', label: 'Protéines',             unit: 'g',    valueKey: 'protides_g',        indent: false },
+  { key: 'fibres',   label: 'Fibres',                unit: 'g',    valueKey: 'fibres_g',          indent: false },
+  { key: 'sel',      label: 'Sel',                   unit: 'g',    valueKey: 'sel_g',             indent: false },
+];
+
+function NutritionTable({ per_100g, ajr }) {
+  return (
+    <table className={`ingredients ${styles.nutritionTable}`}>
+      <thead>
+        <tr>
+          <th>Nutriment</th>
+          <th style={{ textAlign: 'right' }}>Pour 100 g</th>
+          <th style={{ textAlign: 'right' }}>% AJR</th>
+        </tr>
+      </thead>
+      <tbody>
+        {NUTRITION_ROWS.map(({ key, label, unit, valueKey, indent }) => {
+          const val  = per_100g[valueKey] ?? 0;
+          const pct  = ajr[key] ?? 0;
+          const lvl  = ajrLevel(pct);
+          return (
+            <tr key={key}>
+              <td style={indent ? { paddingLeft: 18, color: 'var(--muted)' } : undefined}>{label}</td>
+              <td className="qty">{val} {unit}</td>
+              <td className={`pct ${AJR_LEVEL_CLASS[lvl]}`}>{pct} %</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
+const BAR_ROWS = [
+  { key: 'energie',  label: 'Énergie'  },
+  { key: 'lipides',  label: 'Lipides'  },
+  { key: 'satures',  label: 'Saturés'  },
+  { key: 'glucides', label: 'Glucides' },
+  { key: 'sucres',   label: 'Sucres'   },
+  { key: 'protides', label: 'Protéines'},
+  { key: 'fibres',   label: 'Fibres'   },
+  { key: 'sel',      label: 'Sel'      },
+];
+
+function AJRBarChart({ ajr }) {
+  return (
+    <div className={styles.ajrChart}>
+      <div className={styles.ajrChartLabel}>% AJR pour 100 g</div>
+      {BAR_ROWS.map(({ key, label }) => {
+        const pct = ajr[key] ?? 0;
+        const lvl = ajrLevel(pct);
+        const width = Math.min(100, pct);
+        return (
+          <div key={key} className={styles.ajrRow}>
+            <span className={styles.ajrBarLabel}>{label}</span>
+            <div className={styles.ajrBarTrack}>
+              <div
+                className={`${styles.ajrBarFill} ${AJR_LEVEL_CLASS[lvl]}`}
+                style={{ width: `${width}%` }}
+              />
+              {pct > 100 && <div className={styles.ajrOverflow} />}
+            </div>
+            <span className={`${styles.ajrBarPct} ${AJR_LEVEL_CLASS[lvl]}`}>{pct} %</span>
+          </div>
+        );
+      })}
     </div>
   );
 }
