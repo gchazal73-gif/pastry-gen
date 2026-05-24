@@ -3,31 +3,37 @@
 import { useState, useMemo } from 'react';
 import {
   Plus, X, GripVertical, Pencil, RotateCcw,
-  ChevronDown, ChevronUp,
+  ChevronDown, ChevronUp, Star,
 } from 'lucide-react';
-import { computeProductionPlan } from '../../lib/production.js';
 import styles from '../../app/plan-de-travail/plan.module.css';
 
-const ASSIGNATION_CYCLE = { couche: 'habillage', habillage: 'libre', libre: 'couche' };
-
+const ASSIGNATION_CYCLE  = { couche: 'habillage', habillage: 'libre', libre: 'couche' };
 const ASSIGNATION_LABELS = { couche: 'Couche', habillage: 'Habillage', libre: 'Libre' };
-
-const ASSIGNATION_STYLE = {
+const ASSIGNATION_STYLE  = {
   couche:    styles.stackAssignCouche,
   habillage: styles.stackAssignHabillage,
   libre:     styles.stackAssignLibre,
 };
 
 const TYPE_FILTER_OPTIONS = [
-  { id: '',               label: 'Tous'        },
-  { id: 'cercle',         label: 'Cercles'     },
-  { id: 'cadre',          label: 'Cadres'      },
-  { id: 'demi_sphere',    label: 'Demi-sph.'   },
-  { id: 'moule_silicone', label: 'Silicone'    },
-  { id: '_user',          label: 'Mes moules'  },
+  { id: '',               label: 'Tous'       },
+  { id: 'cercle',         label: 'Cercles'    },
+  { id: 'cadre',          label: 'Cadres'     },
+  { id: 'demi_sphere',    label: 'Demi-sph.'  },
+  { id: 'moule_silicone', label: 'Silicone'   },
+  { id: '_user',          label: 'Mes moules' },
 ];
 
-export default function PanneauProduction({ production, setProduction, montage, setMontage, allMoules }) {
+export default function PanneauProduction({
+  production, setProduction,
+  montage, setMontage,
+  allMoules,
+  moulesMap,
+  productionResult,
+  composantsMap,
+  barSegments = [],
+  onNormalize,
+}) {
   const [dragIdx,        setDragIdx]        = useState(null);
   const [overIdx,        setOverIdx]        = useState(null);
   const [overridingUid,  setOverridingUid]  = useState(null);
@@ -35,20 +41,7 @@ export default function PanneauProduction({ production, setProduction, montage, 
   const [mouleModalOpen, setMouleModalOpen] = useState(false);
   const [showWarnings,   setShowWarnings]   = useState(false);
 
-  const moulesMap = useMemo(
-    () => Object.fromEntries(allMoules.map(m => [m.id, m])),
-    [allMoules],
-  );
-
-  const productionResult = useMemo(() => {
-    if (production.moules.filter(ms => (ms.quantite ?? 0) > 0).length === 0) return null;
-    return computeProductionPlan({ production, montage }, moulesMap);
-  }, [production, montage, moulesMap]);
-
-  const composantsMap = useMemo(() => {
-    if (!productionResult) return {};
-    return Object.fromEntries(productionResult.composants.map(c => [c.uid, c]));
-  }, [productionResult]);
+  const modePct = production.mode_calcul === 'par_pourcentage';
 
   const stackIndicator = useMemo(() => {
     if (!productionResult || production.moules.length === 0) return null;
@@ -62,7 +55,24 @@ export default function PanneauProduction({ production, setProduction, montage, 
     return { sommeMm, hauteurMm, pct: Math.min(100, (sommeMm / hauteurMm) * 100) };
   }, [productionResult, production.moules, montage.couches, moulesMap]);
 
-  // ── Moule operations ──────────────────────────────────────────────────────
+  // Pourcentage total pour l'indicateur
+  const sommePct = useMemo(
+    () => montage.couches.reduce((s, c) => s + (c.pourcentage ?? 0), 0),
+    [montage.couches],
+  );
+  const pctOk    = Math.abs(sommePct - 100) <= 0.5;
+  const pctEcart = Math.round((100 - sommePct) * 10) / 10;
+
+  // ── Mode toggle ──────────────────────────────────────────────────────────
+
+  function toggleMode() {
+    setProduction(prev => ({
+      ...prev,
+      mode_calcul: prev.mode_calcul === 'par_couches' ? 'par_pourcentage' : 'par_couches',
+    }));
+  }
+
+  // ── Moule operations ─────────────────────────────────────────────────────
 
   function addMoule(moule) {
     if (production.moules.some(ms => ms.moule_id === moule.id)) return;
@@ -89,6 +99,10 @@ export default function PanneauProduction({ production, setProduction, montage, 
     }));
   }
 
+  function setMouleRef(moule_id) {
+    setProduction(prev => ({ ...prev, moule_reference_id: moule_id }));
+  }
+
   function setPerte(val) {
     const n = parseFloat(val);
     setProduction(prev => ({
@@ -97,7 +111,7 @@ export default function PanneauProduction({ production, setProduction, montage, 
     }));
   }
 
-  // ── Stack operations ──────────────────────────────────────────────────────
+  // ── Stack operations ─────────────────────────────────────────────────────
 
   function setEpaisseur(uid, val) {
     const n = parseFloat(val);
@@ -145,59 +159,76 @@ export default function PanneauProduction({ production, setProduction, montage, 
     }));
   }
 
-  // ── Drag-and-drop ─────────────────────────────────────────────────────────
+  // ── Drag-and-drop ────────────────────────────────────────────────────────
 
-  function handleDragStart(e, idx) {
-    setDragIdx(idx);
-    e.dataTransfer.effectAllowed = 'move';
-  }
-
-  function handleDragOver(e, idx) {
-    e.preventDefault();
-    setOverIdx(idx);
-  }
-
+  function handleDragStart(e, idx) { setDragIdx(idx); e.dataTransfer.effectAllowed = 'move'; }
+  function handleDragOver(e, idx)  { e.preventDefault(); setOverIdx(idx); }
   function handleDrop(e, idx) {
     e.preventDefault();
     if (dragIdx !== null && dragIdx !== idx) {
       setMontage(prev => {
-        const next      = [...prev.couches];
-        const [moved]   = next.splice(dragIdx, 1);
+        const next    = [...prev.couches];
+        const [moved] = next.splice(dragIdx, 1);
         next.splice(idx, 0, moved);
         return { ...prev, couches: next };
       });
     }
-    setDragIdx(null);
-    setOverIdx(null);
+    setDragIdx(null); setOverIdx(null);
   }
-
-  function handleDragEnd() {
-    setDragIdx(null);
-    setOverIdx(null);
-  }
+  function handleDragEnd() { setDragIdx(null); setOverIdx(null); }
 
   if (montage.couches.length === 0) return null;
 
+  const totalMoules = production.moules.reduce((s, ms) => s + (ms.quantite ?? 1), 0);
+
   return (
     <div className={styles.prodPanel}>
-      <div className={styles.prodPanelTitle}>Production</div>
+
+      {/* ── Mode toggle ────────────────────────────────────────────────── */}
+      <div className={styles.prodModeToggle}>
+        <button
+          className={`${styles.prodModeBtn}${!modePct ? ` ${styles.prodModeBtnActive}` : ''}`}
+          onClick={() => !modePct || toggleMode()}
+        >
+          Montage par couches
+        </button>
+        <button
+          className={`${styles.prodModeBtn}${modePct ? ` ${styles.prodModeBtnActive}` : ''}`}
+          onClick={() => modePct || toggleMode()}
+        >
+          Composition par %
+        </button>
+      </div>
 
       {/* ── Moules ─────────────────────────────────────────────────────── */}
       <div className={styles.prodSection}>
         <div className={styles.prodSectionTitle}>Moules</div>
 
         {production.moules.length === 0 ? (
-          <p className={styles.prodEmptyMoules}>Aucun moule sélectionné</p>
+          <p className={styles.prodEmptyMoules}>Aucun moule — ajoutez-en pour calculer les masses</p>
         ) : (
           production.moules.map(ms => {
-            const moule = moulesMap[ms.moule_id];
+            const moule   = moulesMap[ms.moule_id];
             if (!moule) return null;
-            const vol = productionResult?.moules?.find(m => m.id === ms.moule_id)?.volume_ml;
+            const vol     = productionResult?.moules?.find(m => m.id === ms.moule_id)?.volume_ml;
+            const isRef   = production.moule_reference_id === ms.moule_id;
             return (
               <div key={ms.moule_id} className={styles.prodMouleRow}>
+                <button
+                  className={`${styles.prodMouleRefBtn}${isRef ? ` ${styles.prodMouleRefBtnActive}` : ''}`}
+                  onClick={() => setMouleRef(ms.moule_id)}
+                  title={isRef ? 'Moule de référence' : 'Définir comme moule de référence'}
+                  aria-label="Moule de référence"
+                >
+                  <Star size={11} strokeWidth={isRef ? 0 : 2} fill={isRef ? 'currentColor' : 'none'} />
+                </button>
                 <div className={styles.prodMouleInfo}>
                   <div className={styles.prodMouleNom}>{moule.nom}</div>
-                  {vol != null && <div className={styles.prodMouleVol}>{vol} mL</div>}
+                  {vol != null && (
+                    <div className={styles.prodMouleVol}>
+                      {vol} mL{isRef ? <span className={styles.prodMouleRefTag}> · réf.</span> : ''}
+                    </div>
+                  )}
                 </div>
                 <div className={styles.prodMouleControls}>
                   <input
@@ -229,6 +260,23 @@ export default function PanneauProduction({ production, setProduction, montage, 
         </button>
       </div>
 
+      {/* ── Récap volumes (si moules sélectionnés) ─────────────────────── */}
+      {productionResult && (
+        <div className={styles.prodVolumeStats}>
+          <div className={styles.prodVolumeRow}>
+            <span className={styles.prodVolumeLabel}>Moule réf.</span>
+            <span className={styles.prodVolumeVal}>{productionResult.volume_reference_ml} mL</span>
+          </div>
+          <div className={styles.prodVolumeRow}>
+            <span className={styles.prodVolumeLabel}>Production totale</span>
+            <span className={styles.prodVolumeVal}>
+              {productionResult.volume_total_ml} mL
+              <span className={styles.prodVolumeSub}> · {totalMoules} moule{totalMoules > 1 ? 's' : ''}</span>
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* ── Perte % ────────────────────────────────────────────────────── */}
       <div className={styles.prodPerteRow}>
         <span className={styles.prodPerteLabel}>Perte production</span>
@@ -244,121 +292,174 @@ export default function PanneauProduction({ production, setProduction, montage, 
         <span className={styles.prodPerteUnit}>%</span>
       </div>
 
-      {/* ── Stack ──────────────────────────────────────────────────────── */}
-      <div className={styles.prodSection}>
-        <div className={styles.prodSectionTitle}>Montage — bas → haut</div>
-
-        {montage.couches.map((couche, idx) => {
-          const computed      = composantsMap[couche.uid];
-          const masseAuMoulage = computed?.masse_au_moulage_g;
-          const hasOverride    = couche.masse_g_override != null;
-          const isOverriding   = overridingUid === couche.uid;
-
-          return (
-            <div
-              key={couche.uid}
-              className={[
-                styles.stackItem,
-                dragIdx === idx                       ? styles.stackItemDragging : '',
-                overIdx === idx && dragIdx !== idx    ? styles.stackItemOver     : '',
-              ].filter(Boolean).join(' ')}
-              draggable
-              onDragStart={e => handleDragStart(e, idx)}
-              onDragOver={e  => handleDragOver(e, idx)}
-              onDrop={e      => handleDrop(e, idx)}
-              onDragEnd={handleDragEnd}
-            >
-              <span className={styles.stackHandle} aria-hidden="true">
-                <GripVertical size={13} strokeWidth={2} />
-              </span>
-
-              <button
-                type="button"
-                className={`${styles.stackAssign} ${ASSIGNATION_STYLE[couche.assignation] ?? ''}`}
-                onClick={() => cycleAssignation(couche.uid)}
-                title="Cliquer pour changer l'assignation"
-              >
-                {ASSIGNATION_LABELS[couche.assignation]}
-              </button>
-
-              <div className={styles.stackNom}>{couche.nom}</div>
-
-              {couche.assignation === 'couche' && (
-                <input
-                  type="number"
-                  min={1}
-                  max={50}
-                  step={0.5}
-                  value={couche.epaisseur_mm ?? ''}
-                  onChange={e => setEpaisseur(couche.uid, e.target.value)}
-                  className={styles.stackEpaisseur}
-                  aria-label="Épaisseur (mm)"
-                  title="Épaisseur en mm"
-                />
+      {/* ═══════════════════════════════════════════════════════════════════
+          Mode Composition par %
+      ═══════════════════════════════════════════════════════════════════ */}
+      {modePct && (
+        <>
+          {/* Indicateur % total */}
+          <div className={`${styles.pctSommaire}${pctOk ? ` ${styles.pctSommaireOk}` : ` ${styles.pctSommaireKo}`}`}>
+            <span className={styles.pctSommaireLabel}>
+              Total : <strong>{Math.round(sommePct * 10) / 10} %</strong>
+              {!pctOk && (
+                <span> — {pctEcart > 0 ? `manque ${pctEcart} %` : `dépasse de ${Math.abs(pctEcart)} %`}</span>
               )}
+            </span>
+            <button className={styles.pctNormalize} onClick={onNormalize}>
+              Normaliser à 100 %
+            </button>
+          </div>
 
-              <div className={styles.stackMasseArea}>
-                {isOverriding ? (
-                  <input
-                    type="number"
-                    min={0}
-                    step={1}
-                    value={overrideVal}
-                    onChange={e => setOverrideVal(e.target.value)}
-                    onBlur={() => commitOverride(couche.uid)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter')  commitOverride(couche.uid);
-                      if (e.key === 'Escape') setOverridingUid(null);
+          {/* Barre empilée */}
+          {barSegments.length > 0 && sommePct > 0 && (
+            <div className={styles.stackedBarWrapper}>
+              <div className={styles.stackedBar}>
+                {barSegments.filter(s => s.pct > 0).map(seg => (
+                  <div
+                    key={seg.uid}
+                    className={styles.stackedBarSeg}
+                    style={{
+                      width: `${Math.min(100, (seg.pct / Math.max(sommePct, 100)) * 100)}%`,
+                      background: seg.color,
                     }}
-                    className={styles.prodMasseOverrideInput}
-                    autoFocus
+                    title={`${seg.nom} — ${seg.pct} %`}
                   />
-                ) : (
-                  <span className={`${styles.stackMasse}${hasOverride ? ` ${styles.stackMasseOverridden}` : ''}`}>
-                    {masseAuMoulage != null ? `${masseAuMoulage} g` : '—'}
+                ))}
+              </div>
+              <div className={styles.stackedBarLegend}>
+                {barSegments.filter(s => s.pct > 0).map(seg => (
+                  <span key={seg.uid} className={styles.stackedBarLegendItem}>
+                    <span className={styles.stackedBarLegendDot} style={{ background: seg.color }} />
+                    {seg.nom} {seg.pct} %
                   </span>
-                )}
-
-                {!isOverriding && (
-                  <button
-                    type="button"
-                    className={styles.stackMasseBtn}
-                    onClick={() => startOverride(couche.uid, masseAuMoulage)}
-                    title="Surcharger la masse"
-                  >
-                    <Pencil size={10} strokeWidth={2} />
-                  </button>
-                )}
-
-                {hasOverride && !isOverriding && (
-                  <button
-                    type="button"
-                    className={styles.stackMasseBtn}
-                    onClick={() => resetOverride(couche.uid)}
-                    title="Réinitialiser"
-                  >
-                    <RotateCcw size={10} strokeWidth={2} />
-                  </button>
-                )}
+                ))}
               </div>
             </div>
-          );
-        })}
-      </div>
+          )}
+        </>
+      )}
 
-      {/* ── Stack indicator ────────────────────────────────────────────── */}
-      {stackIndicator && (
-        <div className={styles.prodStackIndicator}>
-          <div className={styles.prodStackIndicatorLabel}>
-            Stack : {stackIndicator.sommeMm} / {stackIndicator.hauteurMm} mm
+      {/* ═══════════════════════════════════════════════════════════════════
+          Mode Montage par couches (stack manager)
+      ═══════════════════════════════════════════════════════════════════ */}
+      {!modePct && (
+        <>
+          <div className={styles.prodSection}>
+            <div className={styles.prodSectionTitle}>Montage — bas → haut</div>
+
+            {montage.couches.map((couche, idx) => {
+              const computed       = composantsMap[couche.uid];
+              const masseAuMoulage = computed?.masse_au_moulage_g;
+              const hasOverride    = couche.masse_g_override != null;
+              const isOverriding   = overridingUid === couche.uid;
+
+              return (
+                <div
+                  key={couche.uid}
+                  className={[
+                    styles.stackItem,
+                    dragIdx === idx                    ? styles.stackItemDragging : '',
+                    overIdx === idx && dragIdx !== idx ? styles.stackItemOver     : '',
+                  ].filter(Boolean).join(' ')}
+                  draggable
+                  onDragStart={e => handleDragStart(e, idx)}
+                  onDragOver={e  => handleDragOver(e, idx)}
+                  onDrop={e      => handleDrop(e, idx)}
+                  onDragEnd={handleDragEnd}
+                >
+                  <span className={styles.stackHandle} aria-hidden="true">
+                    <GripVertical size={13} strokeWidth={2} />
+                  </span>
+
+                  <button
+                    type="button"
+                    className={`${styles.stackAssign} ${ASSIGNATION_STYLE[couche.assignation] ?? ''}`}
+                    onClick={() => cycleAssignation(couche.uid)}
+                    title="Cliquer pour changer l'assignation"
+                  >
+                    {ASSIGNATION_LABELS[couche.assignation]}
+                  </button>
+
+                  <div className={styles.stackNom}>{couche.nom}</div>
+
+                  {couche.assignation === 'couche' && (
+                    <input
+                      type="number"
+                      min={1}
+                      max={50}
+                      step={0.5}
+                      value={couche.epaisseur_mm ?? ''}
+                      onChange={e => setEpaisseur(couche.uid, e.target.value)}
+                      className={styles.stackEpaisseur}
+                      aria-label="Épaisseur (mm)"
+                      title="Épaisseur en mm"
+                    />
+                  )}
+
+                  <div className={styles.stackMasseArea}>
+                    {isOverriding ? (
+                      <input
+                        type="number"
+                        min={0}
+                        step={1}
+                        value={overrideVal}
+                        onChange={e => setOverrideVal(e.target.value)}
+                        onBlur={() => commitOverride(couche.uid)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter')  commitOverride(couche.uid);
+                          if (e.key === 'Escape') setOverridingUid(null);
+                        }}
+                        className={styles.prodMasseOverrideInput}
+                        autoFocus
+                      />
+                    ) : (
+                      <span className={`${styles.stackMasse}${hasOverride ? ` ${styles.stackMasseOverridden}` : ''}`}>
+                        {masseAuMoulage != null ? `${masseAuMoulage} g` : '—'}
+                      </span>
+                    )}
+
+                    {!isOverriding && (
+                      <button
+                        type="button"
+                        className={styles.stackMasseBtn}
+                        onClick={() => startOverride(couche.uid, masseAuMoulage)}
+                        title="Surcharger la masse"
+                      >
+                        <Pencil size={10} strokeWidth={2} />
+                      </button>
+                    )}
+
+                    {hasOverride && !isOverriding && (
+                      <button
+                        type="button"
+                        className={styles.stackMasseBtn}
+                        onClick={() => resetOverride(couche.uid)}
+                        title="Réinitialiser"
+                      >
+                        <RotateCcw size={10} strokeWidth={2} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          <div className={styles.prodStackBar}>
-            <div
-              className={`${styles.prodStackBarFill}${stackIndicator.sommeMm > stackIndicator.hauteurMm ? ` ${styles.prodStackBarOver}` : ''}`}
-              style={{ width: `${stackIndicator.pct}%` }}
-            />
-          </div>
-        </div>
+
+          {/* Stack indicator */}
+          {stackIndicator && (
+            <div className={styles.prodStackIndicator}>
+              <div className={styles.prodStackIndicatorLabel}>
+                Stack : {stackIndicator.sommeMm} / {stackIndicator.hauteurMm} mm
+              </div>
+              <div className={styles.prodStackBar}>
+                <div
+                  className={`${styles.prodStackBarFill}${stackIndicator.sommeMm > stackIndicator.hauteurMm ? ` ${styles.prodStackBarOver}` : ''}`}
+                  style={{ width: `${stackIndicator.pct}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* ── Totaux ─────────────────────────────────────────────────────── */}
@@ -376,7 +477,7 @@ export default function PanneauProduction({ production, setProduction, montage, 
       )}
 
       {/* ── Warnings ───────────────────────────────────────────────────── */}
-      {productionResult?.warnings?.length > 0 && (
+      {productionResult?.warnings?.filter(w => w.code !== 'POURCENTAGES_HORS_100').length > 0 && (
         <div className={styles.prodWarnings}>
           <button
             className={styles.prodWarningsToggle}
@@ -472,9 +573,7 @@ function ModalSelectionMoule({ allMoules, selectedIds, onSelect, onClose }) {
                 onClick={() => onSelect(moule)}
                 role="button"
                 tabIndex={0}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' || e.key === ' ') onSelect(moule);
-                }}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onSelect(moule); }}
               >
                 <div>
                   <div className={styles.modalItemNom}>{moule.nom}</div>
