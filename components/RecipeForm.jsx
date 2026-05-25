@@ -31,12 +31,15 @@ export default function RecipeForm({ onRecette }) {
   const tpl     = TEMPLATES[textureId];
   const hasSupa = !!TEMPLATE_FAMILLES[textureId];
   const isGlace = tpl.famille_texture === 'glaces_sorbets';
+  // Sélecteur parfum local : glaces + glaçages + inserts avec plusieurs parfums possibles
+  const showLocalParfumSelector = !hasSupa && tpl.parfumsCompat.length > 1;
 
   // Réinitialiser format et parfum local quand on change de texture
   useEffect(() => {
     const t = TEMPLATES[textureId];
     setFormat(t.formats ? Object.keys(t.formats)[0] : '');
-    if (t.famille_texture === 'glaces_sorbets') {
+    const needsLocalParfum = !TEMPLATE_FAMILLES[textureId] && t.parfumsCompat.length > 1;
+    if (needsLocalParfum) {
       setParfumLocalId(t.parfumsCompat[0] ?? '');
     }
   }, [textureId]);
@@ -74,8 +77,8 @@ export default function RecipeForm({ onRecette }) {
         alert(`Ce parfum n'est pas encore compatible avec le template "${tpl.label}".`);
         return;
       }
-    } else if (isGlace) {
-      parfumId = parfumLocalId;
+    } else if (showLocalParfumSelector) {
+      parfumId = parfumLocalId || tpl.parfumsCompat[0];
       if (!parfumId || !PARFUMS[parfumId]) return;
     } else {
       parfumId = tpl.parfumsCompat[0];
@@ -141,7 +144,7 @@ export default function RecipeForm({ onRecette }) {
   const famillesSupa = Object.keys(groupesSupa).sort();
 
   // Grouper les textures par famille_texture pour le sélecteur
-  const textureGroupes = { _default: [], glaces_sorbets: [] };
+  const textureGroupes = { _default: [], glaces_sorbets: [], glacages: [], inserts: [] };
   for (const id of textureIds) {
     const fam = TEMPLATES[id].famille_texture ?? '_default';
     if (!textureGroupes[fam]) textureGroupes[fam] = [];
@@ -182,6 +185,20 @@ export default function RecipeForm({ onRecette }) {
               ))}
             </optgroup>
           )}
+          {textureGroupes['glacages'].length > 0 && (
+            <optgroup label="Glaçages">
+              {textureGroupes['glacages'].map(id => (
+                <option key={id} value={id}>{TEMPLATES[id].label}</option>
+              ))}
+            </optgroup>
+          )}
+          {textureGroupes['inserts'].length > 0 && (
+            <optgroup label="Inserts">
+              {textureGroupes['inserts'].map(id => (
+                <option key={id} value={id}>{TEMPLATES[id].label}</option>
+              ))}
+            </optgroup>
+          )}
         </select>
       </div>
 
@@ -212,8 +229,8 @@ export default function RecipeForm({ onRecette }) {
         </div>
       )}
 
-      {/* Sélecteur local parfum (glaces et sorbets) */}
-      {isGlace && (
+      {/* Sélecteur local parfum (glaces, sorbets, glaçages, inserts) */}
+      {showLocalParfumSelector && (
         <div className="field">
           <label htmlFor="parfum-local">Parfum / arôme</label>
           <select
@@ -284,7 +301,7 @@ export default function RecipeForm({ onRecette }) {
       <button
         className="primary"
         onClick={handleGenerer}
-        disabled={loadingDb || (hasSupa && !selectedDbId) || (isGlace && !parfumLocalId)}
+        disabled={loadingDb || (hasSupa && !selectedDbId) || (showLocalParfumSelector && !parfumLocalId)}
       >
         Générer la recette
       </button>
