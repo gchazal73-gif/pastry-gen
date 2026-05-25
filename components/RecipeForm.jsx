@@ -6,6 +6,7 @@ import { PARFUMS, CONTRAINTES, FAMILLE_LABELS, FAMILLE_ORDER } from '@/lib/data.
 import { genererRecette } from '@/lib/engine.js';
 import { fetchIngredients, fetchTemplateTarget, TEMPLATE_FAMILLES, SUPABASE_TO_PARFUM_V1, FROZEN_TEMPLATES } from '@/lib/ingredient-store.js';
 import { autoBalance } from '@/lib/calculator.js';
+import { reequilibrer, calculerIndicateurs, verifierFourchettes } from '@/lib/engine_glaces.js';
 
 const FAMILLE_LABELS_SUPA = {
   fruits_frais:           'Fruits frais',
@@ -82,6 +83,22 @@ export default function RecipeForm({ onRecette }) {
 
     // Génération V1
     const recette = genererRecette({ textureId, parfumId, masse, contraintes, format: format || null });
+
+    // Rééquilibrage glace V3 (court-circuite le V2 Supabase)
+    if (isGlace) {
+      const cv = {
+        vegan:   contraintes.includes('vegan'),
+        lactose: contraintes.includes('lactose') || contraintes.includes('vegan'),
+        gluten:  contraintes.includes('gluten'),
+        igbas:   contraintes.includes('igbas'),
+        format:  format || null,
+      };
+      const { lignes: lignesR, journal: journalGlace, encarts, warnings } = reequilibrer(recette.lignes, textureId, masse, cv);
+      const indicateurs = calculerIndicateurs(lignesR);
+      const fourchettes = verifierFourchettes(indicateurs, textureId);
+      onRecette({ ...recette, lignes: lignesR, rapport: null, journal: [], warnings, ingredientDb: null, indicateurs, fourchettes, encarts, journalGlace });
+      return;
+    }
 
     // Rééquilibrage automatique V2
     const dbIngredient = dbIngredients.find(i => i.id === selectedDbId) ?? null;

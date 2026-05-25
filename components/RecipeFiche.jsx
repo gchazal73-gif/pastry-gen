@@ -76,6 +76,69 @@ function BalanceJournal({ journal, warnings }) {
   );
 }
 
+function IndicateurGlaceRow({ label, valeur, unite, min, max, statut }) {
+  const COLOR = { ok: 'var(--ok)', attention: 'var(--warn)', hors: 'var(--bad)' };
+  const color = COLOR[statut] ?? 'var(--muted)';
+  const pct = valeur != null
+    ? Math.min(100, Math.max(0, ((valeur - min) / (max - min)) * 100))
+    : 0;
+  return (
+    <tr>
+      <td style={{ fontSize: 12, color: 'var(--muted)', paddingRight: 8 }}>
+        <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: color, marginRight: 6 }} />
+        {label}
+      </td>
+      <td style={{ fontSize: 13, fontVariantNumeric: 'tabular-nums', textAlign: 'right', paddingRight: 8 }}>
+        {valeur != null ? valeur.toFixed(1) : '—'}{unite}
+      </td>
+      <td style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'right', whiteSpace: 'nowrap' }}>
+        [{min} – {max}]{unite}
+      </td>
+      <td style={{ paddingLeft: 12, width: 80 }}>
+        <div style={{ position: 'relative', height: 6, background: 'var(--line)', borderRadius: 3 }}>
+          <div style={{
+            position: 'absolute', left: 0, top: 0, height: '100%', borderRadius: 3,
+            width: `${pct}%`, background: color,
+          }} />
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+function GlaceJournal({ journal, warnings = [] }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="accordion">
+      <button className="accordion-trigger" onClick={() => setOpen(o => !o)}>
+        <span>
+          Ajustements automatiques
+          <span style={{ marginLeft: 8, fontSize: 11, color: 'var(--muted)', fontWeight: 400 }}>
+            {journal.length} ajustement{journal.length > 1 ? 's' : ''}
+          </span>
+        </span>
+        <span className={`accordion-arrow${open ? ' open' : ''}`}>▼</span>
+      </button>
+      {open && (
+        <div className="accordion-body">
+          {warnings.map((w, i) => (
+            <div key={i} className="note" style={{ borderColor: 'var(--warn)', marginBottom: 6 }}>⚠ {w}</div>
+          ))}
+          {journal.map((entry, i) => (
+            <div key={i} className="journal-entry">
+              <div className="journal-entry-header">
+                <span className="journal-badge">Itération {entry.iter}</span>
+                <span className="journal-param" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.05em' }}>{entry.param}</span>
+              </div>
+              <div className="journal-rule">{entry.regle}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function EquilibreRow({ label, valeur, min, max, ok }) {
   const pct = Math.min(100, Math.max(0, ((valeur - min) / (max - min)) * 100));
   return (
@@ -114,7 +177,7 @@ export default function RecipeFiche({ recette }) {
     );
   }
 
-  const { texture, description, parfum, masse, formatLabel, contraintes: c, badges, lignes, process: proc, date, rapport, ingredientDb, journal = [], warnings = [] } = recette;
+  const { texture, description, parfum, masse, formatLabel, contraintes: c, badges, lignes, process: proc, date, rapport, ingredientDb, journal = [], warnings = [], indicateurs = null, fourchettes = null, encarts = [], journalGlace = [] } = recette;
   const totalG = lignes.reduce((s, l) => s + l.g, 0);
 
   const badgesRendus = badges.length > 0
@@ -259,6 +322,63 @@ export default function RecipeFiche({ recette }) {
         {rapport && (
           <div className="section">
             <BalanceJournal journal={journal} warnings={warnings} />
+          </div>
+        )}
+
+        {/* Indicateurs glace */}
+        {fourchettes && fourchettes.length > 0 && (
+          <div className="section">
+            <h4>
+              Indicateurs glace
+              <span style={{
+                marginLeft: 10, fontSize: 11, fontWeight: 600, padding: '2px 7px',
+                borderRadius: 12,
+                background: fourchettes.every(f => f.statut === 'ok') ? '#e3efe6' : '#fce8d4',
+                color: fourchettes.every(f => f.statut === 'ok') ? 'var(--ok)' : 'var(--warn)',
+                textTransform: 'none', letterSpacing: 0,
+              }}>
+                {fourchettes.every(f => f.statut === 'ok') ? '✓ Équilibré' : '⚠ À vérifier'}
+              </span>
+            </h4>
+
+            {encarts.map((e, i) => (
+              <div key={i} className="note" style={{
+                borderColor: e.type === 'attention' ? 'var(--warn)' : 'var(--ok)',
+                marginBottom: 8,
+              }}>
+                <strong>{e.titre}</strong><br />{e.message}
+              </div>
+            ))}
+
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 8, marginBottom: 12 }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'left', fontSize: 11, color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', paddingBottom: 6 }}>Indicateur</th>
+                  <th style={{ textAlign: 'right', fontSize: 11, color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', paddingBottom: 6 }}>Valeur</th>
+                  <th style={{ textAlign: 'right', fontSize: 11, color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', paddingBottom: 6 }}>Fourchette</th>
+                  <th style={{ paddingLeft: 12, width: 80 }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {fourchettes.map(f => <IndicateurGlaceRow key={f.key} {...f} />)}
+              </tbody>
+            </table>
+
+            {fourchettes.filter(f => f.conseil).map((f, i) => (
+              <div key={i} className="note" style={{
+                borderColor: f.statut === 'hors' ? 'var(--bad)' : 'var(--warn)',
+                marginBottom: 6, fontSize: 12,
+              }}>
+                {f.conseil}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Journal de rééquilibrage glace */}
+        {journalGlace.length > 0 && (
+          <div className="section">
+            <GlaceJournal journal={journalGlace} warnings={warnings} />
           </div>
         )}
 
