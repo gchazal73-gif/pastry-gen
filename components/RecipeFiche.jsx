@@ -377,12 +377,20 @@ export default function RecipeFiche({ recette }) {
               </tbody>
             </table>
 
-            {fourchettes.filter(f => f.conseil).map((f, i) => (
+            {fourchettes.filter(f => f.conseil || f.conseil_chiffre).map((f, i) => (
               <div key={i} className="note" style={{
                 borderColor: f.statut === 'hors' ? 'var(--bad)' : 'var(--warn)',
                 marginBottom: 6, fontSize: 12,
               }}>
-                {f.conseil}
+                {f.conseil && <div>{f.conseil}</div>}
+                {f.conseil_chiffre && (
+                  <div style={{
+                    fontFamily: 'monospace', background: 'var(--bg)', borderRadius: 4,
+                    padding: '4px 8px', fontSize: 11, marginTop: f.conseil ? 6 : 0,
+                  }}>
+                    → {f.conseil_chiffre.description}
+                  </div>
+                )}
               </div>
             ))}
           </div>

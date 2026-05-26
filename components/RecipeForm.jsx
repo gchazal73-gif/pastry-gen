@@ -7,8 +7,9 @@ import { genererRecette } from '@/lib/engine.js';
 import { fetchIngredients, fetchTemplateTarget, TEMPLATE_FAMILLES, SUPABASE_TO_PARFUM_V1, FROZEN_TEMPLATES } from '@/lib/ingredient-store.js';
 import { autoBalance } from '@/lib/calculator.js';
 import { reequilibrer } from '@/lib/engine_glaces.js';
-import { calculerIndicateurs } from '@/lib/engine_indicateurs.js';
+import { calculerIndicateurs, calculerBreakdown } from '@/lib/engine_indicateurs.js';
 import { verifierFourchettes } from '@/lib/fourchettes.js';
+import { conseilsChiffres } from '@/lib/engine_conseils.js';
 
 const FAMILLE_LABELS_SUPA = {
   fruits_frais:           'Fruits frais',
@@ -101,7 +102,9 @@ export default function RecipeForm({ onRecette }) {
       const { lignes: lignesR, journal: journalGlace, encarts, warnings } = reequilibrer(recette.lignes, textureId, masse, cv);
       const indicateurs = calculerIndicateurs(lignesR, null);
       const fourchettes = verifierFourchettes(indicateurs, textureId);
-      onRecette({ ...recette, lignes: lignesR, rapport: null, journal: [], warnings, ingredientDb: null, indicateurs, fourchettes, encarts, journalGlace });
+      const breakdown = calculerBreakdown(lignesR, null);
+      const fourchettesAvecConseils = conseilsChiffres(breakdown, fourchettes);
+      onRecette({ ...recette, lignes: lignesR, rapport: null, journal: [], warnings, ingredientDb: null, indicateurs, fourchettes: fourchettesAvecConseils, encarts, journalGlace });
       return;
     }
 
@@ -136,7 +139,9 @@ export default function RecipeForm({ onRecette }) {
 
     const indicateurs = calculerIndicateurs(finalLignes, dbIngredient ?? null);
     const fourchettes = verifierFourchettes(indicateurs, textureId);
-    onRecette({ ...recette, lignes: finalLignes, rapport, journal, warnings, ingredientDb: dbIngredient, indicateurs, fourchettes, encarts: [], journalGlace: [] });
+    const breakdown = calculerBreakdown(finalLignes, dbIngredient ?? null);
+    const fourchettesAvecConseils = conseilsChiffres(breakdown, fourchettes);
+    onRecette({ ...recette, lignes: finalLignes, rapport, journal, warnings, ingredientDb: dbIngredient, indicateurs, fourchettes: fourchettesAvecConseils, encarts: [], journalGlace: [] });
   }
 
   // Grouper les ingrédients Supabase par famille
