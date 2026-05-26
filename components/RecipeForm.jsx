@@ -10,6 +10,7 @@ import { reequilibrer } from '@/lib/engine_glaces.js';
 import { calculerIndicateurs, calculerBreakdown } from '@/lib/engine_indicateurs.js';
 import { verifierFourchettes } from '@/lib/fourchettes.js';
 import { conseilsChiffres } from '@/lib/engine_conseils.js';
+import { reequilibrerNonGlace } from '@/lib/engine_reequilibrage.js';
 
 const FAMILLE_LABELS_SUPA = {
   fruits_frais:           'Fruits frais',
@@ -137,11 +138,18 @@ export default function RecipeForm({ onRecette }) {
       warnings    = balanced.warnings;
     }
 
+    // Rééquilibrage V3 — fourchettes professionnelles (toutes textures non glacées)
+    const reequil = reequilibrerNonGlace(finalLignes, textureId, masse, c, dbIngredient ?? null);
+    finalLignes = reequil.lignes;
+    const journalGlace = reequil.journal;
+    const encarts = reequil.encarts;
+    if (reequil.warnings.length > 0) warnings = [...warnings, ...reequil.warnings];
+
     const indicateurs = calculerIndicateurs(finalLignes, dbIngredient ?? null);
     const fourchettes = verifierFourchettes(indicateurs, textureId);
     const breakdown = calculerBreakdown(finalLignes, dbIngredient ?? null);
     const fourchettesAvecConseils = conseilsChiffres(breakdown, fourchettes);
-    onRecette({ ...recette, lignes: finalLignes, rapport, journal, warnings, ingredientDb: dbIngredient, indicateurs, fourchettes: fourchettesAvecConseils, encarts: [], journalGlace: [] });
+    onRecette({ ...recette, lignes: finalLignes, rapport, journal, warnings, ingredientDb: dbIngredient, indicateurs, fourchettes: fourchettesAvecConseils, encarts, journalGlace });
   }
 
   // Grouper les ingrédients Supabase par famille
