@@ -6,7 +6,9 @@ import { PARFUMS, CONTRAINTES, FAMILLE_LABELS, FAMILLE_ORDER } from '@/lib/data.
 import { genererRecette } from '@/lib/engine.js';
 import { fetchIngredients, fetchTemplateTarget, TEMPLATE_FAMILLES, SUPABASE_TO_PARFUM_V1, FROZEN_TEMPLATES } from '@/lib/ingredient-store.js';
 import { autoBalance } from '@/lib/calculator.js';
-import { reequilibrer, calculerIndicateurs, verifierFourchettes } from '@/lib/engine_glaces.js';
+import { reequilibrer } from '@/lib/engine_glaces.js';
+import { calculerIndicateurs } from '@/lib/engine_indicateurs.js';
+import { verifierFourchettes } from '@/lib/fourchettes.js';
 
 const FAMILLE_LABELS_SUPA = {
   fruits_frais:           'Fruits frais',
@@ -97,7 +99,7 @@ export default function RecipeForm({ onRecette }) {
         format:  format || null,
       };
       const { lignes: lignesR, journal: journalGlace, encarts, warnings } = reequilibrer(recette.lignes, textureId, masse, cv);
-      const indicateurs = calculerIndicateurs(lignesR);
+      const indicateurs = calculerIndicateurs(lignesR, null);
       const fourchettes = verifierFourchettes(indicateurs, textureId);
       onRecette({ ...recette, lignes: lignesR, rapport: null, journal: [], warnings, ingredientDb: null, indicateurs, fourchettes, encarts, journalGlace });
       return;
@@ -132,7 +134,9 @@ export default function RecipeForm({ onRecette }) {
       warnings    = balanced.warnings;
     }
 
-    onRecette({ ...recette, lignes: finalLignes, rapport, journal, warnings, ingredientDb: dbIngredient });
+    const indicateurs = calculerIndicateurs(finalLignes, dbIngredient ?? null);
+    const fourchettes = verifierFourchettes(indicateurs, textureId);
+    onRecette({ ...recette, lignes: finalLignes, rapport, journal, warnings, ingredientDb: dbIngredient, indicateurs, fourchettes, encarts: [], journalGlace: [] });
   }
 
   // Grouper les ingrédients Supabase par famille

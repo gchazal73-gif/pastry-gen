@@ -76,20 +76,22 @@ function BalanceJournal({ journal, warnings }) {
   );
 }
 
-function IndicateurGlaceRow({ label, valeur, unite, min, max, statut }) {
-  const COLOR = { ok: 'var(--ok)', attention: 'var(--warn)', hors: 'var(--bad)' };
-  const color = COLOR[statut] ?? 'var(--muted)';
+function IndicateurRow({ label, valeur, unite, min, max, statut }) {
+  const COLOR  = { ok: 'var(--ok)', attention: 'var(--warn)', hors: 'var(--bad)', inconnu: 'var(--muted)' };
+  const SYMBOL = { ok: '✓', attention: '⚠', hors: '✗', inconnu: '?' };
+  const color  = COLOR[statut]  ?? 'var(--muted)';
+  const symbol = SYMBOL[statut] ?? '?';
   const pct = valeur != null
     ? Math.min(100, Math.max(0, ((valeur - min) / (max - min)) * 100))
     : 0;
   return (
     <tr>
-      <td style={{ fontSize: 12, color: 'var(--muted)', paddingRight: 8 }}>
-        <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: color, marginRight: 6 }} />
-        {label}
+      <td style={{ fontSize: 12, paddingRight: 8 }}>
+        <span style={{ color, fontWeight: 700, marginRight: 6, fontSize: 11 }}>{symbol}</span>
+        <span style={{ color: 'var(--muted)' }}>{label}</span>
       </td>
-      <td style={{ fontSize: 13, fontVariantNumeric: 'tabular-nums', textAlign: 'right', paddingRight: 8 }}>
-        {valeur != null ? valeur.toFixed(1) : '—'}{unite}
+      <td style={{ fontSize: 13, fontVariantNumeric: 'tabular-nums', textAlign: 'right', paddingRight: 8, color }}>
+        {valeur != null ? valeur.toFixed(valeur < 10 ? 2 : 1) : '—'}{unite}
       </td>
       <td style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'right', whiteSpace: 'nowrap' }}>
         [{min} – {max}]{unite}
@@ -325,19 +327,23 @@ export default function RecipeFiche({ recette }) {
           </div>
         )}
 
-        {/* Indicateurs glace */}
+        {/* Indicateurs d'équilibre */}
         {fourchettes && fourchettes.length > 0 && (
           <div className="section">
             <h4>
-              Indicateurs glace
+              Indicateurs d'équilibre
               <span style={{
                 marginLeft: 10, fontSize: 11, fontWeight: 600, padding: '2px 7px',
                 borderRadius: 12,
-                background: fourchettes.every(f => f.statut === 'ok') ? '#e3efe6' : '#fce8d4',
-                color: fourchettes.every(f => f.statut === 'ok') ? 'var(--ok)' : 'var(--warn)',
+                background: fourchettes.every(f => f.statut === 'ok' || f.statut === 'inconnu') ? '#e3efe6'
+                  : fourchettes.some(f => f.statut === 'hors') ? '#fce8d4' : '#fff8e1',
+                color: fourchettes.every(f => f.statut === 'ok' || f.statut === 'inconnu') ? 'var(--ok)'
+                  : fourchettes.some(f => f.statut === 'hors') ? 'var(--warn)' : 'var(--warn)',
                 textTransform: 'none', letterSpacing: 0,
               }}>
-                {fourchettes.every(f => f.statut === 'ok') ? '✓ Équilibré' : '⚠ À vérifier'}
+                {fourchettes.every(f => f.statut === 'ok' || f.statut === 'inconnu') ? '✓ Équilibré'
+                  : fourchettes.some(f => f.statut === 'hors') ? '✗ Hors fourchette'
+                  : '⚠ À vérifier'}
               </span>
             </h4>
 
@@ -350,6 +356,13 @@ export default function RecipeFiche({ recette }) {
               </div>
             ))}
 
+            {indicateurs?.masse_couverte_pct != null && indicateurs.masse_couverte_pct < 99 && (
+              <div className="note" style={{ borderColor: 'var(--muted)', marginBottom: 8, fontSize: 12, color: 'var(--muted)' }}>
+                Données partielles — {indicateurs.masse_couverte_pct.toFixed(0)} % de la masse identifiée.
+                Les indicateurs marqués ? sont estimés ou absents.
+              </div>
+            )}
+
             <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 8, marginBottom: 12 }}>
               <thead>
                 <tr>
@@ -360,7 +373,7 @@ export default function RecipeFiche({ recette }) {
                 </tr>
               </thead>
               <tbody>
-                {fourchettes.map(f => <IndicateurGlaceRow key={f.key} {...f} />)}
+                {fourchettes.map(f => <IndicateurRow key={f.key} {...f} />)}
               </tbody>
             </table>
 
