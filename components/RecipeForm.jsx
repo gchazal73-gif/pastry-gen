@@ -19,7 +19,7 @@ const FAMILLE_LABELS_SUPA = {
   oleagineux:             'Oléagineux',
 };
 
-export default function RecipeForm({ onRecette }) {
+export default function RecipeForm({ onRecette, onComparer }) {
   const textureIds = Object.keys(TEMPLATES);
   const [textureId, setTextureId]     = useState(textureIds[0]);
   const [masse, setMasse]             = useState(800);
@@ -61,6 +61,24 @@ export default function RecipeForm({ onRecette }) {
       .catch(console.error)
       .finally(() => setLoadingDb(false));
   }, [textureId, hasSupa]);
+
+  // Résolution du parfumId V1 (partagée par Générer et Comparer)
+  function getParfumIdV1() {
+    if (hasSupa) {
+      if (!selectedDbId) return null;
+      const v1 = SUPABASE_TO_PARFUM_V1[selectedDbId];
+      if (!v1 || !PARFUMS[v1] || !tpl.parfumsCompat.includes(v1)) return null;
+      return v1;
+    }
+    if (showLocalParfumSelector) return parfumLocalId || tpl.parfumsCompat[0] || null;
+    return tpl.parfumsCompat[0] || null;
+  }
+
+  function handleComparer() {
+    const parfumId = getParfumIdV1();
+    if (!parfumId) return;
+    onComparer?.({ textureId, parfumId, masse, contraintes, format: format || null });
+  }
 
   function toggleContrainte(id) {
     setContraintes(prev =>
@@ -315,13 +333,27 @@ export default function RecipeForm({ onRecette }) {
         </div>
       </div>
 
-      <button
-        className="primary"
-        onClick={handleGenerer}
-        disabled={loadingDb || (hasSupa && !selectedDbId) || (showLocalParfumSelector && !parfumLocalId)}
-      >
-        Générer la recette
-      </button>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button
+          className="primary"
+          style={{ flex: 1 }}
+          onClick={handleGenerer}
+          disabled={loadingDb || (hasSupa && !selectedDbId) || (showLocalParfumSelector && !parfumLocalId)}
+        >
+          Générer
+        </button>
+        {onComparer && (
+          <button
+            className="secondary"
+            style={{ flex: 1 }}
+            onClick={handleComparer}
+            disabled={loadingDb || (hasSupa && !selectedDbId) || (showLocalParfumSelector && !parfumLocalId)}
+            title="Comparer 4 versions (classique / sans lactose / vegan / bien-être)"
+          >
+            Comparer ▤
+          </button>
+        )}
+      </div>
     </div>
   );
 }
