@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { PARFUMS } from '@/lib/data.js';
+import { suggererAccords, suggererTextures, suggererCompositions } from '@/lib/moteur_accords.js';
 
 function formatG(g) {
   if (g >= 100) return `${g.toFixed(0)} g`;
@@ -164,6 +166,167 @@ function EquilibreRow({ label, valeur, min, max, ok }) {
         </div>
       </td>
     </tr>
+  );
+}
+
+const SAISON_COLORS = {
+  printemps: { bg: '#e8f5e9', color: '#2e7d32' },
+  été:       { bg: '#fff3e0', color: '#e65100' },
+  automne:   { bg: '#fbe9e7', color: '#bf360c' },
+  hiver:     { bg: '#e3f2fd', color: '#1565c0' },
+};
+
+function PillBtn({ active, onClick, children }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        fontSize: 11, padding: '4px 12px', borderRadius: 20,
+        border: '1px solid var(--line)', cursor: 'pointer',
+        background: active ? 'var(--accent)' : 'transparent',
+        color: active ? '#fff' : 'var(--ink)',
+        fontWeight: active ? 600 : 400,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function EncartAccords({ parfumId, textureId }) {
+  const [open,   setOpen]   = useState(false);
+  const [onglet, setOnglet] = useState('accords');
+
+  const accords  = useMemo(() => suggererAccords(parfumId),      [parfumId]);
+  const textures = useMemo(() => suggererTextures(parfumId),     [parfumId]);
+  const compos   = useMemo(() => suggererCompositions(parfumId), [parfumId]);
+
+  if (!parfumId || parfumId === 'nature') return null;
+
+  return (
+    <div className="accordion">
+      <button className="accordion-trigger" onClick={() => setOpen(o => !o)}>
+        <span>
+          Idées d'accords &amp; compositions
+          {!open && accords.length > 0 && (
+            <span style={{ marginLeft: 8, fontSize: 11, color: 'var(--muted)', fontWeight: 400 }}>
+              {accords.length} accord{accords.length > 1 ? 's' : ''} · {compos.length} composition{compos.length > 1 ? 's' : ''}
+            </span>
+          )}
+        </span>
+        <span className={`accordion-arrow${open ? ' open' : ''}`}>▼</span>
+      </button>
+
+      {open && (
+        <div className="accordion-body">
+
+          {/* Onglets */}
+          <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
+            <PillBtn active={onglet === 'accords'}  onClick={() => setOnglet('accords')}>
+              Accords parfums {accords.length > 0 && `(${accords.length})`}
+            </PillBtn>
+            <PillBtn active={onglet === 'textures'} onClick={() => setOnglet('textures')}>
+              Textures compatibles {textures.length > 0 && `(${textures.length})`}
+            </PillBtn>
+            <PillBtn active={onglet === 'compos'}   onClick={() => setOnglet('compos')}>
+              Compositions {compos.length > 0 && `(${compos.length})`}
+            </PillBtn>
+          </div>
+
+          {/* Tab — Accords parfums */}
+          {onglet === 'accords' && (
+            accords.length === 0
+              ? <p style={{ fontSize: 12, color: 'var(--muted)' }}>Aucun accord référencé pour ce parfum.</p>
+              : accords.map((a, i) => (
+                <div key={i} style={{
+                  display: 'flex', gap: 12, alignItems: 'flex-start',
+                  padding: '8px 0', borderBottom: '1px solid var(--line)',
+                }}>
+                  <span style={{
+                    fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap',
+                    padding: '2px 10px', borderRadius: 20,
+                    background: 'var(--bg)', border: '1px solid var(--line)',
+                    minWidth: 90, textAlign: 'center',
+                  }}>
+                    {PARFUMS[a.id]?.label ?? a.id}
+                  </span>
+                  <span style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>
+                    {a.note}
+                  </span>
+                </div>
+              ))
+          )}
+
+          {/* Tab — Textures compatibles */}
+          {onglet === 'textures' && (
+            textures.length === 0
+              ? <p style={{ fontSize: 12, color: 'var(--muted)' }}>Aucune texture compatible trouvée.</p>
+              : textures.map((t, i) => (
+                <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid var(--line)' }}>
+                  <div style={{
+                    fontSize: 12, fontWeight: 600,
+                    color: t.textureId === textureId ? 'var(--accent)' : 'var(--ink)',
+                    marginBottom: 2,
+                  }}>
+                    {t.label}
+                    {t.textureId === textureId && (
+                      <span style={{ fontSize: 10, color: 'var(--muted)', marginLeft: 6, fontWeight: 400 }}>
+                        ← texture actuelle
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.4 }}>
+                    {t.description}
+                  </div>
+                </div>
+              ))
+          )}
+
+          {/* Tab — Compositions */}
+          {onglet === 'compos' && (
+            compos.length === 0
+              ? <p style={{ fontSize: 12, color: 'var(--muted)' }}>Aucune composition référencée.</p>
+              : compos.map((comp, i) => {
+                const sc = SAISON_COLORS[comp.saison] ?? { bg: 'var(--bg)', color: 'var(--muted)' };
+                return (
+                  <div key={i} style={{ padding: '12px 0', borderBottom: '1px solid var(--line)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <span style={{ fontWeight: 700, fontSize: 13 }}>{comp.nom}</span>
+                      <span style={{
+                        fontSize: 10, padding: '2px 8px', borderRadius: 12,
+                        background: sc.bg, color: sc.color, fontWeight: 600,
+                        textTransform: 'capitalize',
+                      }}>
+                        {comp.saison}
+                      </span>
+                    </div>
+                    <p style={{ fontSize: 12, color: 'var(--muted)', margin: '0 0 8px', lineHeight: 1.4 }}>
+                      {comp.description}
+                    </p>
+                    <table style={{ width: '100%', fontSize: 11, borderCollapse: 'collapse' }}>
+                      <tbody>
+                        {comp.couches.map((couche, j) => (
+                          <tr key={j}>
+                            <td style={{ color: 'var(--muted)', paddingRight: 10, paddingBottom: 3, width: 70 }}>
+                              {couche.couche}
+                            </td>
+                            <td style={{ fontWeight: 500, paddingRight: 10, paddingBottom: 3 }}>
+                              {couche.texture}
+                            </td>
+                            <td style={{ color: 'var(--muted)', paddingBottom: 3 }}>
+                              {couche.parfum !== 'nature' ? (PARFUMS[couche.parfum]?.label ?? couche.parfum) : '—'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              })
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -393,6 +556,13 @@ export default function RecipeFiche({ recette }) {
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Idées d'accords & compositions */}
+        {recette.parfumId && recette.parfumId !== 'nature' && (
+          <div className="section">
+            <EncartAccords parfumId={recette.parfumId} textureId={recette.textureId} />
           </div>
         )}
 
