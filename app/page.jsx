@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import RecipeForm        from '@/components/RecipeForm';
 import RecipeFiche       from '@/components/RecipeFiche';
 import GrilleComparaison from '@/components/GrilleComparaison';
@@ -16,6 +16,19 @@ import { PARFUMS, FAMILLE_LABELS, FAMILLE_ORDER } from '@/lib/data.js';
 export default function GenerateurPage() {
   const [recette,          setRecette]          = useState(null);
   const [modeComparaison,  setModeComparaison]  = useState(false);
+  const [formKey,          setFormKey]          = useState(0);
+  const [urlParams,        setUrlParams]        = useState({ textureId: null, parfumId: null });
+
+  // Pré-remplissage du formulaire depuis les paramètres URL (lien "Générer" depuis /compositions)
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    const tId = p.get('textureId');
+    const pId = p.get('parfumId');
+    if (tId) {
+      setUrlParams({ textureId: tId, parfumId: pId });
+      setFormKey(k => k + 1);
+    }
+  }, []);
   const [comparaison,      setComparaison]      = useState(null);
   const [scenario,         setScenario]         = useState('versions');
   const [formParams,       setFormParams]       = useState(null);
@@ -266,7 +279,13 @@ export default function GenerateurPage() {
         </p>
       </div>
       <div className="layout">
-        <RecipeForm onRecette={setRecette} onComparer={handleComparer} />
+        <RecipeForm
+          key={formKey}
+          onRecette={setRecette}
+          onComparer={handleComparer}
+          defaultTextureId={urlParams.textureId}
+          defaultParfumId={urlParams.parfumId}
+        />
         <RecipeFiche recette={recette} />
       </div>
     </div>

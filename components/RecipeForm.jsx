@@ -19,13 +19,20 @@ const FAMILLE_LABELS_SUPA = {
   oleagineux:             'Oléagineux',
 };
 
-export default function RecipeForm({ onRecette, onComparer }) {
-  const textureIds = Object.keys(TEMPLATES);
-  const [textureId, setTextureId]     = useState(textureIds[0]);
-  const [masse, setMasse]             = useState(800);
-  const [contraintes, setContraintes] = useState([]);
-  const [format, setFormat]           = useState('');
-  const [parfumLocalId, setParfumLocalId] = useState('');
+export default function RecipeForm({ onRecette, onComparer, defaultTextureId, defaultParfumId }) {
+  const textureIds   = Object.keys(TEMPLATES);
+  const initTextureId = (defaultTextureId && TEMPLATES[defaultTextureId]) ? defaultTextureId : textureIds[0];
+
+  const [textureId, setTextureId]         = useState(initTextureId);
+  const [masse, setMasse]                 = useState(800);
+  const [contraintes, setContraintes]     = useState([]);
+  const [format, setFormat]               = useState('');
+  const [parfumLocalId, setParfumLocalId] = useState(() => {
+    if (!defaultParfumId || !defaultTextureId) return '';
+    const t = TEMPLATES[defaultTextureId];
+    if (!t || TEMPLATE_FAMILLES[defaultTextureId] || t.parfumsCompat.length <= 1) return '';
+    return t.parfumsCompat.includes(defaultParfumId) ? defaultParfumId : '';
+  });
 
   // Bibliothèque Supabase
   const [dbIngredients, setDbIngredients]     = useState([]);
@@ -44,7 +51,11 @@ export default function RecipeForm({ onRecette, onComparer }) {
     setFormat(t.formats ? Object.keys(t.formats)[0] : '');
     const needsLocalParfum = !TEMPLATE_FAMILLES[textureId] && t.parfumsCompat.length > 1;
     if (needsLocalParfum) {
-      setParfumLocalId(t.parfumsCompat[0] ?? '');
+      setParfumLocalId(prev => {
+        if (prev && t.parfumsCompat.includes(prev)) return prev;
+        if (defaultParfumId && t.parfumsCompat.includes(defaultParfumId)) return defaultParfumId;
+        return t.parfumsCompat[0] ?? '';
+      });
     }
   }, [textureId]);
 

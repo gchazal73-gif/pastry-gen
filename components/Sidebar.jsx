@@ -16,6 +16,7 @@ import {
   BookOpen,
   LayoutDashboard,
   Circle,
+  Layers,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -24,6 +25,7 @@ const NAV_ITEMS = [
   { href: '/bibliotheque',  label: 'Bibliothèque de recettes', icon: BookOpen,        active: true  },
   { href: '/moules',        label: 'Moules',                   icon: Circle,          active: true  },
   { href: '/plan-de-travail', label: 'Plan de travail',        icon: LayoutDashboard, active: true  },
+  { href: '/compositions',   label: 'Mes compositions',        icon: Layers,          active: true  },
   { href: '/templates',     label: 'Templates & textures',     icon: LayoutTemplate,  active: false },
   { href: '/recettes',      label: 'Mes recettes',             icon: Bookmark,        active: false },
   { href: '/profils',       label: 'Profils & contraintes',    icon: User,            active: false },

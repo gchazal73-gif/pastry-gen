@@ -1,8 +1,11 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { PARFUMS } from '@/lib/data.js';
+import { TEMPLATES } from '@/lib/templates.js';
 import { suggererAccords, suggererTextures, suggererCompositions } from '@/lib/moteur_accords.js';
+import { togglePlannifiee } from '@/lib/compositions-store.js';
 
 function formatG(g) {
   if (g >= 100) return `${g.toFixed(0)} g`;
@@ -194,8 +197,20 @@ function PillBtn({ active, onClick, children }) {
 }
 
 function EncartAccords({ parfumId, textureId }) {
-  const [open,   setOpen]   = useState(false);
-  const [onglet, setOnglet] = useState('accords');
+  const [open,        setOpen]        = useState(false);
+  const [onglet,      setOnglet]      = useState('accords');
+  const [plannifiees, setPlannifiees] = useState([]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('pastry-gen-mes-compositions');
+      if (raw) setPlannifiees(JSON.parse(raw));
+    } catch {}
+  }, []);
+
+  const handleToggle = useCallback((id) => {
+    setPlannifiees(togglePlannifiee(id));
+  }, []);
 
   const accords  = useMemo(() => suggererAccords(parfumId),      [parfumId]);
   const textures = useMemo(() => suggererTextures(parfumId),     [parfumId]);
@@ -287,23 +302,44 @@ function EncartAccords({ parfumId, textureId }) {
             compos.length === 0
               ? <p style={{ fontSize: 12, color: 'var(--muted)' }}>Aucune composition référencée.</p>
               : compos.map((comp, i) => {
-                const sc = SAISON_COLORS[comp.saison] ?? { bg: 'var(--bg)', color: 'var(--muted)' };
+                const sc      = SAISON_COLORS[comp.saison] ?? { bg: 'var(--bg)', color: 'var(--muted)' };
+                const estPlan = plannifiees.includes(comp.id);
+                const tpl     = comp.textureIdPrincipal ? TEMPLATES[comp.textureIdPrincipal] : null;
+                const genUrl  = (comp.textureIdPrincipal && comp.parfumIdPrincipal)
+                  ? `/?textureId=${comp.textureIdPrincipal}&parfumId=${comp.parfumIdPrincipal}`
+                  : null;
                 return (
                   <div key={i} style={{ padding: '12px 0', borderBottom: '1px solid var(--line)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                      <span style={{ fontWeight: 700, fontSize: 13 }}>{comp.nom}</span>
-                      <span style={{
-                        fontSize: 10, padding: '2px 8px', borderRadius: 12,
-                        background: sc.bg, color: sc.color, fontWeight: 600,
-                        textTransform: 'capitalize',
-                      }}>
-                        {comp.saison}
-                      </span>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
+                      <div style={{ flex: 1 }}>
+                        <span style={{ fontWeight: 700, fontSize: 13, marginRight: 8 }}>{comp.nom}</span>
+                        <span style={{
+                          fontSize: 10, padding: '2px 8px', borderRadius: 12,
+                          background: sc.bg, color: sc.color, fontWeight: 600,
+                          textTransform: 'capitalize',
+                        }}>
+                          {comp.saison}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleToggle(comp.id)}
+                        title={estPlan ? 'Retirer de mes compositions' : 'Planifier cette composition'}
+                        style={{
+                          fontSize: 10, padding: '3px 8px',
+                          border: `1px solid ${estPlan ? 'var(--accent)' : 'var(--line)'}`,
+                          borderRadius: 20, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
+                          background: estPlan ? 'var(--accent)' : 'transparent',
+                          color: estPlan ? '#fff' : 'var(--ink)',
+                          fontWeight: estPlan ? 600 : 400,
+                        }}
+                      >
+                        {estPlan ? '✓ Planifié' : '+ Planifier'}
+                      </button>
                     </div>
                     <p style={{ fontSize: 12, color: 'var(--muted)', margin: '0 0 8px', lineHeight: 1.4 }}>
                       {comp.description}
                     </p>
-                    <table style={{ width: '100%', fontSize: 11, borderCollapse: 'collapse' }}>
+                    <table style={{ width: '100%', fontSize: 11, borderCollapse: 'collapse', marginBottom: genUrl ? 8 : 0 }}>
                       <tbody>
                         {comp.couches.map((couche, j) => (
                           <tr key={j}>
@@ -320,6 +356,19 @@ function EncartAccords({ parfumId, textureId }) {
                         ))}
                       </tbody>
                     </table>
+                    {genUrl && (
+                      <Link
+                        href={genUrl}
+                        style={{
+                          display: 'block', textAlign: 'center', fontSize: 11,
+                          padding: '6px', border: '1px solid var(--line)', borderRadius: 6,
+                          color: 'var(--accent)', fontWeight: 600, textDecoration: 'none',
+                          background: 'var(--bg)',
+                        }}
+                      >
+                        Générer {tpl?.label ?? comp.textureIdPrincipal} →
+                      </Link>
+                    )}
                   </div>
                 );
               })
