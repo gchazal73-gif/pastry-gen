@@ -11,6 +11,7 @@ import SlotCard          from '../../components/plan/SlotCard.jsx';
 import RecapMatieres     from '../../components/plan/RecapMatieres.jsx';
 import RecapMiseEnPlace  from '../../components/plan/RecapMiseEnPlace.jsx';
 import RecapNutrition    from '../../components/plan/RecapNutrition.jsx';
+import RecapMetier       from '../../components/plan/RecapMetier.jsx';
 import ModalAjout        from '../../components/plan/ModalAjout.jsx';
 import PanneauProduction from '../../components/plan/PanneauProduction.jsx';
 import styles from './plan.module.css';
@@ -331,6 +332,7 @@ export default function PlanDeTravailPage() {
               profilAJR={profilAJR}
               onProfilChange={setProfilAJR}
             />
+            <RecapMetier slots={slots} recettesMap={recettesMap} />
           </div>
         </div>
       )}

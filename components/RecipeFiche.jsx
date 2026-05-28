@@ -6,6 +6,10 @@ import { PARFUMS } from '@/lib/data.js';
 import { TEMPLATES } from '@/lib/templates.js';
 import { suggererAccords, suggererTextures, suggererCompositions } from '@/lib/moteur_accords.js';
 import { togglePlannifiee } from '@/lib/compositions-store.js';
+import { INGREDIENTS_METIER } from '@/lib/ingredients-metier.js';
+import { calculerCoutAvecRatios, formatPrix } from '@/lib/cout.js';
+import { getRecetteAllergenes, formatLabelInco } from '@/lib/allergenes.js';
+import { calculerDlcRecette, getRecommandationsConservation } from '@/lib/conservation.js';
 
 function formatG(g) {
   if (g >= 100) return `${g.toFixed(0)} g`;
@@ -379,6 +383,264 @@ function EncartAccords({ parfumId, textureId }) {
   );
 }
 
+// ── Encart coût matière ───────────────────────────────────────────────────────
+
+function EncartCout({ lignes }) {
+  const [open, setOpen] = useState(false);
+  const [multRevient, setMultRevient] = useState(2);
+  const [multPvttc,   setMultPvttc]   = useState(5);
+
+  useEffect(() => {
+    try {
+      const r = parseFloat(localStorage.getItem('pastry-gen-mult-revient'));
+      const p = parseFloat(localStorage.getItem('pastry-gen-mult-pvttc'));
+      if (!isNaN(r) && r > 0) setMultRevient(r);
+      if (!isNaN(p) && p > 0) setMultPvttc(p);
+    } catch {}
+  }, []);
+
+  const handleMult = (key, raw) => {
+    const n = parseFloat(raw);
+    if (isNaN(n) || n <= 0) return;
+    if (key === 'revient') {
+      setMultRevient(n);
+      try { localStorage.setItem('pastry-gen-mult-revient', n); } catch {}
+    } else {
+      setMultPvttc(n);
+      try { localStorage.setItem('pastry-gen-mult-pvttc', n); } catch {}
+    }
+  };
+
+  const cout = useMemo(
+    () => calculerCoutAvecRatios(lignes, INGREDIENTS_METIER, { multiplicateur_revient: multRevient, multiplicateur_pvttc: multPvttc }),
+    [lignes, multRevient, multPvttc],
+  );
+
+  return (
+    <div className="accordion">
+      <button className="accordion-trigger" onClick={() => setOpen(o => !o)}>
+        <span>
+          Coût matière
+          {!open && cout.cout_total_eur > 0 && (
+            <span style={{ marginLeft: 8, fontSize: 11, color: 'var(--muted)', fontWeight: 400 }}>
+              {formatPrix(cout.cout_total_eur)} · PVTTC {formatPrix(cout.pvttc_eur)}
+            </span>
+          )}
+        </span>
+        <span className={`accordion-arrow${open ? ' open' : ''}`}>▼</span>
+      </button>
+
+      {open && (
+        <div className="accordion-body">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+            {[
+              ['Coût matière', cout.cout_total_eur],
+              ['Coût/100 g',   cout.cout_pour_100g_eur],
+              ['Prix de revient', cout.prix_de_revient_eur],
+              ['PVTTC',        cout.pvttc_eur],
+            ].map(([lbl, val]) => (
+              <div key={lbl} style={{ background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: 8, padding: '6px 12px', fontSize: 12 }}>
+                <span style={{ color: 'var(--muted)', marginRight: 4 }}>{lbl}</span>
+                <strong>{formatPrix(val)}</strong>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', gap: 16, alignItems: 'center', fontSize: 12, marginBottom: 12 }}>
+            <span style={{ color: 'var(--muted)' }}>Multiplicateurs :</span>
+            {[['revient', 'Revient ×', multRevient], ['pvttc', 'PVTTC ×', multPvttc]].map(([key, lbl, val]) => (
+              <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                {lbl}
+                <input
+                  type="number" min="1" step="0.1" value={val}
+                  onChange={e => handleMult(key, e.target.value)}
+                  style={{ width: 52, padding: '2px 4px', fontSize: 12, border: '1px solid var(--line)', borderRadius: 4 }}
+                />
+              </label>
+            ))}
+          </div>
+
+          {cout.taux_couverture_pct < 100 && (
+            <div className="note" style={{ borderColor: 'var(--warn)', fontSize: 12, marginBottom: 8 }}>
+              ⚠ Couverture {cout.taux_couverture_pct} % — prix manquants : {cout.ingredients_sans_prix.join(', ')}.
+            </div>
+          )}
+          {cout.prix_obsolete.length > 0 && (
+            <div className="note" style={{ borderColor: 'var(--warn)', fontSize: 12, marginBottom: 8 }}>
+              ⚠ Prix datant de plus de 6 mois : {cout.prix_obsolete.join(', ')}.
+            </div>
+          )}
+          {cout.prix_variable_saison.length > 0 && (
+            <div className="note" style={{ fontSize: 12, marginBottom: 8 }}>
+              Prix saisonniers : {cout.prix_variable_saison.join(', ')}.
+            </div>
+          )}
+
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+            <thead>
+              <tr>
+                {['Ingrédient', 'Quantité', 'Coût', '%'].map((h, i) => (
+                  <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', fontSize: 11, color: 'var(--muted)', fontWeight: 600, paddingBottom: 4 }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {cout.cout_par_ligne.map((l, i) => (
+                <tr key={i} style={{ borderTop: '1px solid var(--line)' }}>
+                  <td style={{ paddingTop: 5, paddingBottom: 5 }}>{l.ingredient}</td>
+                  <td style={{ textAlign: 'right', color: 'var(--muted)', fontVariantNumeric: 'tabular-nums' }}>{l.masse_g.toFixed(0)} g</td>
+                  <td style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                    {l.prix_eur_par_g !== null ? formatPrix(l.cout_eur) : '—'}
+                  </td>
+                  <td style={{ textAlign: 'right', color: 'var(--muted)', fontVariantNumeric: 'tabular-nums' }}>
+                    {l.part_pct !== null ? `${l.part_pct} %` : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Encart allergènes INCO ────────────────────────────────────────────────────
+
+function EncartAllergenes({ lignes }) {
+  const [open, setOpen] = useState(false);
+
+  const result = useMemo(() => getRecetteAllergenes(lignes, INGREDIENTS_METIER), [lignes]);
+  const label  = useMemo(
+    () => formatLabelInco(result.allergenes_presents, result.traces_possibles),
+    [result],
+  );
+
+  const hasData = result.allergenes_presents.length > 0 || result.traces_possibles.length > 0;
+
+  return (
+    <div className="accordion">
+      <button className="accordion-trigger" onClick={() => setOpen(o => !o)}>
+        <span>
+          Allergènes INCO
+          {!open && (
+            <span style={{ marginLeft: 8, fontSize: 11, color: 'var(--muted)', fontWeight: 400 }}>
+              {result.allergenes_presents.length > 0
+                ? `${result.allergenes_presents.length} allergène${result.allergenes_presents.length > 1 ? 's' : ''}`
+                : hasData ? 'traces uniquement' : 'aucun allergène déclaré'}
+            </span>
+          )}
+        </span>
+        <span className={`accordion-arrow${open ? ' open' : ''}`}>▼</span>
+      </button>
+
+      {open && (
+        <div className="accordion-body">
+          {result.ingredients_sans_donnees.length > 0 && (
+            <div className="note" style={{ borderColor: 'var(--warn)', fontSize: 12, marginBottom: 10 }}>
+              ⚠ Données manquantes pour : {result.ingredients_sans_donnees.join(', ')}.
+              Les allergènes ne peuvent être garantis.
+            </div>
+          )}
+
+          {label.texte ? (
+            <div
+              style={{ background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: 8, padding: '10px 14px', fontSize: 13, lineHeight: 1.5, marginBottom: 12 }}
+              dangerouslySetInnerHTML={{ __html: label.html }}
+            />
+          ) : (
+            !result.ingredients_sans_donnees.length && (
+              <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 10 }}>
+                Aucun allergène majeur identifié sur la base des données disponibles.
+              </div>
+            )
+          )}
+
+          {result.repartition.length > 0 && (
+            <div style={{ marginTop: 4 }}>
+              <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 6 }}>Sources</div>
+              {result.repartition.map((r, i) => (
+                <div key={i} style={{ display: 'flex', gap: 10, padding: '4px 0', borderBottom: '1px solid var(--line)', fontSize: 12 }}>
+                  <span style={{ fontWeight: 600, minWidth: 120 }}>{r.label}</span>
+                  <span style={{ color: 'var(--muted)' }}>{r.ingredients.join(', ')}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Encart conservation & DLC ─────────────────────────────────────────────────
+
+function EncartConservation({ lignes, textureId }) {
+  const [open, setOpen] = useState(false);
+
+  const dlc  = useMemo(() => calculerDlcRecette(lignes, textureId, INGREDIENTS_METIER), [lignes, textureId]);
+  const reco = useMemo(() => getRecommandationsConservation(dlc), [dlc]);
+
+  return (
+    <div className="accordion">
+      <button className="accordion-trigger" onClick={() => setOpen(o => !o)}>
+        <span>
+          Conservation &amp; DLC indicative
+          {!open && dlc.dlc_finale_j !== null && (
+            <span style={{ marginLeft: 8, fontSize: 11, color: reco.alerte_chaine_froid ? 'var(--bad)' : 'var(--muted)', fontWeight: 400 }}>
+              {reco.alerte_chaine_froid ? '⚠ ' : ''}{dlc.dlc_finale_j} j à +4 °C
+            </span>
+          )}
+        </span>
+        <span className={`accordion-arrow${open ? ' open' : ''}`}>▼</span>
+      </button>
+
+      {open && (
+        <div className="accordion-body">
+          {reco.alerte_chaine_froid && (
+            <div className="note" style={{ borderColor: 'var(--bad)', marginBottom: 10 }}>
+              ⚠ DLC ≤ 3 j — chaîne du froid stricte, pas de rupture admissible.
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+            {[
+              dlc.dlc_finale_j   !== null && ['Réfrigéré +4 °C',   `${dlc.dlc_finale_j} j`],
+              dlc.dlc_surgele_j  !== null && ['Surgelé −18 °C',     `${dlc.dlc_surgele_j} j`],
+              dlc.dlc_ambiant_j  !== null && ['Ambiant < 20 °C',    `${dlc.dlc_ambiant_j} j`],
+            ].filter(Boolean).map(([lbl, val]) => (
+              <div key={lbl} style={{ background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: 8, padding: '6px 12px', fontSize: 12 }}>
+                <span style={{ color: 'var(--muted)', marginRight: 4 }}>{lbl}</span>
+                <strong>{val}</strong>
+              </div>
+            ))}
+          </div>
+
+          {!dlc.sous_categorie_connue && (
+            <div className="note" style={{ fontSize: 12, marginBottom: 8 }}>
+              Texture non référencée — DLC non calculable.
+            </div>
+          )}
+          {dlc.ingredients_limitants.length > 0 && (
+            <div className="note" style={{ fontSize: 12, marginBottom: 8 }}>
+              Ingrédient(s) limitant(s) : {dlc.ingredients_limitants.join(', ')}.
+            </div>
+          )}
+          {dlc.ingredients_sans_dlc.length > 0 && (
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 10 }}>
+              Données DLC manquantes : {dlc.ingredients_sans_dlc.join(', ')}.
+            </div>
+          )}
+
+          <div className="note" style={{ fontSize: 11, color: 'var(--muted)', borderColor: 'var(--muted)' }}>
+            {dlc.disclaimer}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function RecipeFiche({ recette }) {
   if (!recette) {
     return (
@@ -621,6 +883,21 @@ export default function RecipeFiche({ recette }) {
             <GlaceJournal journal={journalGlace} warnings={warnings} />
           </div>
         )}
+
+        {/* Coût matière */}
+        <div className="section">
+          <EncartCout lignes={lignes} />
+        </div>
+
+        {/* Allergènes INCO */}
+        <div className="section">
+          <EncartAllergenes lignes={lignes} />
+        </div>
+
+        {/* Conservation & DLC */}
+        <div className="section">
+          <EncartConservation lignes={lignes} textureId={recette.textureId} />
+        </div>
 
         {/* Mode opératoire */}
         <div className="section">

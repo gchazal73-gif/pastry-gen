@@ -3,6 +3,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Printer } from 'lucide-react';
 import { RECETTES } from '../../../lib/recettes/index.js';
+import { INGREDIENTS_METIER } from '../../../lib/ingredients-metier.js';
+import { calculerCoutAvecRatios, formatPrix } from '../../../lib/cout.js';
+import { getRecetteAllergenes, formatLabelInco } from '../../../lib/allergenes.js';
+import { calculerDlcRecette, DISCLAIMER_DLC } from '../../../lib/conservation.js';
 import styles from './imprimer.module.css';
 
 /* ── Helper : accumulation ingrédients (prépas simples + assemblages) ───── */
@@ -209,6 +213,79 @@ function BonEconomat({ recap, slotsWithRecettes, today, totalGeneral }) {
   );
 }
 
+/* ── Helper : lignes pour les moteurs métier ─────────────────────────────── */
+function lignesPourMoteur(recette, masse) {
+  if (recette.type === 'assemblage') {
+    const ratio = masse / recette.masse_totale_g;
+    return recette.composants.flatMap(comp =>
+      comp.ingredients.map(ing => ({ nom: ing.nom, g: ing.pct / 100 * comp.masse_g * ratio }))
+    );
+  }
+  return recette.ingredients.map(ing => ({ nom: ing.nom, g: ing.pct / 100 * masse }));
+}
+
+/* ── Sous-composant : étiquette vitrine ──────────────────────────────────── */
+function EtiquetteVitrine({ slot, recette, today, isLast }) {
+  const masse = Number(slot.masse) > 0 ? Number(slot.masse) : recette.masse_totale_g;
+  const lignes = lignesPourMoteur(recette, masse);
+
+  const cout      = calculerCoutAvecRatios(lignes, INGREDIENTS_METIER);
+  const allergenes = getRecetteAllergenes(lignes, INGREDIENTS_METIER);
+  const label     = formatLabelInco(allergenes.allergenes_presents, allergenes.traces_possibles);
+  const dlc       = calculerDlcRecette(lignes, recette.sous_categorie, INGREDIENTS_METIER);
+
+  return (
+    <div className={`${styles.fiche} ${isLast ? styles.ficheLast : ''}`}
+      style={{ maxWidth: 320, border: '2px solid #000', borderRadius: 4, padding: '16px 18px', fontSize: 13 }}
+    >
+      {/* Nom + masse */}
+      <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 2 }}>{recette.nom}</div>
+      <div style={{ fontSize: 11, color: '#555', marginBottom: 10 }}>
+        {recette.sous_categorie.replace(/_/g, ' ')}
+        {recette.parfum_principal ? ` · ${recette.parfum_principal}` : ''}
+        {' · '}{masse} g
+      </div>
+
+      {/* Prix */}
+      {cout.pvttc_eur > 0 && (
+        <div style={{ fontWeight: 700, fontSize: 20, marginBottom: 10 }}>
+          {formatPrix(cout.pvttc_eur)}
+        </div>
+      )}
+
+      {/* Allergènes INCO */}
+      {label.texte ? (
+        <div style={{ fontSize: 11, lineHeight: 1.5, marginBottom: 8 }}
+          dangerouslySetInnerHTML={{ __html: label.html }}
+        />
+      ) : (
+        <div style={{ fontSize: 11, color: '#555', marginBottom: 8 }}>Sans allergène majeur déclaré.</div>
+      )}
+      {allergenes.ingredients_sans_donnees.length > 0 && (
+        <div style={{ fontSize: 10, color: '#888', marginBottom: 6 }}>
+          ⚠ Allergènes non vérifiables pour : {allergenes.ingredients_sans_donnees.join(', ')}.
+        </div>
+      )}
+
+      {/* DLC */}
+      <div style={{ marginBottom: 6, fontSize: 12 }}>
+        {dlc.dlc_finale_j !== null
+          ? <>À consommer dans les <strong>{dlc.dlc_finale_j} j</strong> · réfrigéré +4 °C max.</>
+          : dlc.dlc_surgele_j !== null
+            ? <>Surgelé − consommer dans les <strong>{dlc.dlc_surgele_j} j</strong> après décongélation.</>
+            : 'DLC : consulter le professionnel.'
+        }
+      </div>
+      <div style={{ fontSize: 10, color: '#666', lineHeight: 1.4 }}>Fabriqué le {today}</div>
+
+      {/* Disclaimer réglementaire */}
+      <div style={{ fontSize: 9, color: '#888', marginTop: 10, lineHeight: 1.4, borderTop: '1px solid #ddd', paddingTop: 8 }}>
+        {DISCLAIMER_DLC}
+      </div>
+    </div>
+  );
+}
+
 /* ── Page principale ─────────────────────────────────────────────────────── */
 export default function ImprimerPage() {
   const [slots,    setSlots]    = useState([]);
@@ -216,8 +293,9 @@ export default function ImprimerPage() {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    // Lire le mode depuis le hash : #economat → bon d'économat
+    // Lire le mode depuis le hash : #economat | #etiquette
     if (window.location.hash === '#economat') setMode('economat');
+    if (window.location.hash === '#etiquette') setMode('etiquette');
 
     try {
       const raw = localStorage.getItem('pastry-gen-plan');
@@ -285,6 +363,12 @@ export default function ImprimerPage() {
           >
             Bon d'économat
           </button>
+          <button
+            className={mode === 'etiquette' ? styles.modeActive : styles.modeBtn}
+            onClick={() => setMode('etiquette')}
+          >
+            Étiquettes vitrine
+          </button>
         </div>
 
         <button className={styles.printBtn} onClick={() => window.print()}>
@@ -305,6 +389,18 @@ export default function ImprimerPage() {
               isLast={i === slotsWithRecettes.length - 1}
             />
           ))
+        ) : mode === 'etiquette' ? (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, padding: '24px 0' }}>
+            {slotsWithRecettes.map(({ slot, recette }, i) => (
+              <EtiquetteVitrine
+                key={slot.uid}
+                slot={slot}
+                recette={recette}
+                today={today}
+                isLast={i === slotsWithRecettes.length - 1}
+              />
+            ))}
+          </div>
         ) : (
           <BonEconomat
             recap={recap}
