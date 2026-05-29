@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Plus, Circle, Square, Layers, Edit2, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { MOULES_PRESETS, computeMoldVolume } from '../../lib/moules.js';
 import ModalMoule from '../../components/moules/ModalMoule.jsx';
 import styles from './moules.module.css';
@@ -9,12 +10,13 @@ import styles from './moules.module.css';
 const STORAGE_KEY = 'moules-user';
 
 const TYPE_FILTERS = [
-  { id: '',             label: 'Tous' },
-  { id: 'cercle',       label: 'Cercles' },
-  { id: 'cadre',        label: 'Cadres' },
-  { id: 'demi_sphere',  label: 'Demi-sphères' },
-  { id: 'moule_silicone', label: 'Silicone' },
-  { id: '_user',        label: 'Mes moules' },
+  { id: '',              label: 'Tous'         },
+  { id: 'cercle',        label: 'Cercles'      },
+  { id: 'cadre',         label: 'Cadres'       },
+  { id: 'demi_sphere',   label: 'Demi-sphères' },
+  { id: 'moule_silicone', label: 'Silicone'    },
+  { id: '_silikomart',   label: 'Silikomart'   },
+  { id: '_user',         label: 'Mes moules'   },
 ];
 
 const FORMAT_LABELS = {
@@ -57,8 +59,9 @@ export default function MoulesPage() {
 
   const moulesFiltres = useMemo(() => {
     let list = tousLesMoules;
-    if (filtreType === '_user')  list = list.filter(m => !m._preset);
-    else if (filtreType)         list = list.filter(m => m.type === filtreType);
+    if      (filtreType === '_user')       list = list.filter(m => !m._preset);
+    else if (filtreType === '_silikomart') list = list.filter(m => m.marque === 'Silikomart');
+    else if (filtreType)                   list = list.filter(m => m.type === filtreType);
     if (recherche.trim()) {
       const q = recherche.toLowerCase();
       list = list.filter(m =>
@@ -186,7 +189,11 @@ function MouleCard({ moule, onEdit, onDelete, formatLabels }) {
             <span className={styles.cardBadge}>{formatLabels[moule.format] ?? moule.format}</span>
           )}
           {moule.est_individuel && <span className={styles.cardBadgeInd}>individuel</span>}
+          {moule.marque && <span className={styles.cardBadge}>{moule.marque}</span>}
         </div>
+        <Link href="/plan-de-travail" className={styles.cardUsePlan}>
+          Utiliser dans le plan →
+        </Link>
       </div>
       {!moule._preset && (
         <div className={styles.cardActions}>
@@ -206,11 +213,52 @@ function MouleCard({ moule, onEdit, onDelete, formatLabels }) {
   );
 }
 
+const SVG_PROPS = {
+  width: 40, height: 40, viewBox: '0 0 40 40', fill: 'none',
+  stroke: 'currentColor', strokeWidth: '1.5',
+  strokeLinecap: 'round', strokeLinejoin: 'round',
+  'aria-hidden': true,
+};
+
 function ShapeIcon({ forme }) {
-  if (forme === 'cylindre')        return <Circle  size={18} strokeWidth={1.4} />;
-  if (forme === 'parallelepipede') return <Square  size={18} strokeWidth={1.4} />;
-  if (forme === 'demi_sphere')     return <span style={{ fontSize: 16, lineHeight: 1 }}>◗</span>;
-  return <Layers size={18} strokeWidth={1.4} />;
+  if (forme === 'cylindre') return (
+    <svg {...SVG_PROPS}>
+      {/* top ellipse */}
+      <ellipse cx="20" cy="12" rx="12" ry="4" />
+      {/* sides + curved base */}
+      <path d="M8 12v17c0 3 5.4 5 12 5s12-2 12-5V12" />
+    </svg>
+  );
+
+  if (forme === 'parallelepipede') return (
+    <svg {...SVG_PROPS}>
+      {/* front face */}
+      <rect x="5" y="19" width="21" height="16" rx="1" />
+      {/* top face (perspective) */}
+      <path d="M5 19l8-9h22l-8 9z" />
+      {/* right face (perspective) */}
+      <path d="M26 19l8-9v16l-8 9" />
+    </svg>
+  );
+
+  if (forme === 'demi_sphere') return (
+    <svg {...SVG_PROPS}>
+      {/* dome arc */}
+      <path d="M8 26a12 12 0 0 1 24 0" />
+      {/* base ellipse */}
+      <ellipse cx="20" cy="26" rx="12" ry="3.5" />
+    </svg>
+  );
+
+  /* volume_custom — moule silicone ondulé */
+  return (
+    <svg {...SVG_PROPS}>
+      {/* wavy opening */}
+      <path d="M8 19 C11 13 14 13 17 19 C20 25 23 25 26 19 C29 13 32 13 32 19" />
+      {/* body sides + base */}
+      <path d="M8 19 L8 31 Q8 33 10 33 L30 33 Q32 33 32 31 L32 19" />
+    </svg>
+  );
 }
 
 function getDimStr(moule) {
