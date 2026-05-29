@@ -19,6 +19,7 @@ export default function SlotCard({
   onPourcentageChange,
   masseRef = null,
   masseTotale = null,
+  nbMoules = 0,
   segColor = '#457b9d',
 }) {
   const sousLabel = SOUS_CAT_LABELS[recette.sous_categorie] ?? recette.sous_categorie;
@@ -60,17 +61,20 @@ export default function SlotCard({
                 }}
               />
               <span className={styles.slotMasseUnit}>%</span>
+              {masseTotale !== null && (
+                <span className={styles.slotMasseTotale} title="Masse totale à préparer">
+                  → {masseTotale} g
+                </span>
+              )}
             </div>
-            {(masseRef !== null || masseTotale !== null) && (
+            {masseTotale !== null && (
               <div className={styles.slotMasseDual}>
+                <span className={styles.slotMouleBadge}>
+                  calculé · {nbMoules} moule{nbMoules !== 1 ? 's' : ''}
+                </span>
                 {masseRef !== null && (
                   <span className={styles.slotMasseRef} title="Par moule de référence">
-                    {masseRef} g /moule réf.
-                  </span>
-                )}
-                {masseTotale !== null && (
-                  <span className={styles.slotMasseTotale} title="Total production à préparer">
-                    {masseTotale} g total
+                    {masseRef} g / moule réf.
                   </span>
                 )}
               </div>

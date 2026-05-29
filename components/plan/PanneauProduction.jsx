@@ -297,19 +297,6 @@ export default function PanneauProduction({
       ═══════════════════════════════════════════════════════════════════ */}
       {modePct && (
         <>
-          {/* Indicateur % total */}
-          <div className={`${styles.pctSommaire}${pctOk ? ` ${styles.pctSommaireOk}` : ` ${styles.pctSommaireKo}`}`}>
-            <span className={styles.pctSommaireLabel}>
-              Total : <strong>{Math.round(sommePct * 10) / 10} %</strong>
-              {!pctOk && (
-                <span> — {pctEcart > 0 ? `manque ${pctEcart} %` : `dépasse de ${Math.abs(pctEcart)} %`}</span>
-              )}
-            </span>
-            <button className={styles.pctNormalize} onClick={onNormalize}>
-              Normaliser à 100 %
-            </button>
-          </div>
-
           {/* Barre empilée */}
           {barSegments.length > 0 && sommePct > 0 && (
             <div className={styles.stackedBarWrapper}>
@@ -334,6 +321,28 @@ export default function PanneauProduction({
                   </span>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Indicateur % total — visible uniquement si ko */}
+          {pctOk ? (
+            <div className={`${styles.pctSommaire} ${styles.pctSommaireOk}`}>
+              <span className={styles.pctSommaireLabel}>
+                Total : <strong>100 %</strong>
+              </span>
+              <button className={styles.pctNormalize} onClick={onNormalize}>
+                Normaliser à 100 %
+              </button>
+            </div>
+          ) : (
+            <div className={`${styles.pctSommaire} ${styles.pctSommaireKo}`}>
+              <span className={styles.pctSommaireLabel}>
+                Total : <strong>{Math.round(sommePct * 10) / 10} %</strong>
+                <span> — {pctEcart > 0 ? `il manque ${pctEcart} %` : `dépasse de ${Math.abs(pctEcart)} %`}</span>
+              </span>
+              <button className={styles.pctNormalize} onClick={onNormalize}>
+                Normaliser à 100 %
+              </button>
             </div>
           )}
         </>

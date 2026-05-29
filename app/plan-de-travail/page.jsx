@@ -77,6 +77,30 @@ export default function PlanDeTravailPage() {
     }
   }, [production.moules, production.moule_reference_id, hydrated]);
 
+  // Bascule automatique de mode selon la présence de moules.
+  useEffect(() => {
+    if (!hydrated) return;
+    const hasActiveMoules = production.moules.some(ms => (ms.quantite ?? 0) > 0);
+
+    if (hasActiveMoules) {
+      setProduction(prev => {
+        if (prev.mode_calcul === 'par_pourcentage') return prev;
+        return { ...prev, mode_calcul: 'par_pourcentage' };
+      });
+      setMontage(prev => {
+        if (prev.couches.length === 0) return prev;
+        if (!prev.couches.every(c => (c.pourcentage ?? 0) === 0)) return prev;
+        const eq = Math.round(1000 / prev.couches.length) / 10;
+        return { ...prev, couches: prev.couches.map(c => ({ ...c, pourcentage: eq })) };
+      });
+    } else {
+      setProduction(prev => {
+        if (prev.mode_calcul === 'par_couches') return prev;
+        return { ...prev, mode_calcul: 'par_couches' };
+      });
+    }
+  }, [production.moules, hydrated]);
+
   const recettesMap = useMemo(() => {
     const map = {};
     RECETTES.forEach(r => { map[r.id] = r; });
@@ -197,7 +221,8 @@ export default function PlanDeTravailPage() {
     }
   }
 
-  const modePct = production.mode_calcul === 'par_pourcentage';
+  const modePct  = production.mode_calcul === 'par_pourcentage';
+  const nbMoules = production.moules.reduce((s, ms) => s + (ms.quantite ?? 1), 0);
   const miseEnPlaceActive = modePct && productionResult !== null;
 
   return (
@@ -292,6 +317,7 @@ export default function PlanDeTravailPage() {
                     onPourcentageChange={updatePourcentage}
                     masseRef={composant?.masse_moule_reference_g ?? null}
                     masseTotale={composant?.masse_a_preparer_g ?? null}
+                    nbMoules={nbMoules}
                     segColor={segColor}
                   />
                 );
