@@ -9,10 +9,18 @@ const CONTRAINTES = [
   { id: 'sans_lactose', label: 'Sans lactose' },
 ];
 
+const TRI_OPTIONS = [
+  { value: '',         label: 'Par défaut' },
+  { value: 'nom',      label: 'Nom A→Z'   },
+  { value: 'calories', label: 'Calories ↑' },
+  { value: 'masse',    label: 'Masse ↑'   },
+];
+
 export default function FilterPanel({
   filtreCategorie, setFiltreCategorie,
   filtresContraintes, setFiltresContraintes,
   recherche, setRecherche,
+  tri, setTri,
 }) {
   const cats = Object.entries(CATEGORIES).sort((a, b) => a[1].ordre - b[1].ordre);
   const catCounts = {};
@@ -24,7 +32,7 @@ export default function FilterPanel({
     );
   }
 
-  const hasFilters = filtreCategorie || filtresContraintes.length > 0 || recherche.trim();
+  const hasFilters = filtreCategorie || filtresContraintes.length > 0 || recherche.trim() || tri;
 
   return (
     <aside className={styles.filterPanel}>
@@ -88,6 +96,19 @@ export default function FilterPanel({
         </div>
       </div>
 
+      <div className={styles.filterSection}>
+        <p className={styles.filterTitle}>Tri</p>
+        <select
+          className={styles.triSelect}
+          value={tri}
+          onChange={e => setTri(e.target.value)}
+        >
+          {TRI_OPTIONS.map(o => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+      </div>
+
       {hasFilters && (
         <button
           className="secondary"
@@ -96,6 +117,7 @@ export default function FilterPanel({
             setFiltreCategorie('');
             setFiltresContraintes([]);
             setRecherche('');
+            setTri('');
           }}
         >
           Réinitialiser

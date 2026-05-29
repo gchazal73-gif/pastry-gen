@@ -17,7 +17,7 @@ const CONTRAINTES_BADGES = [
   { key: 'sans_lactose', label: 'SL'          },
 ];
 
-export default function RecetteCard({ recette, selected, onSelect, categories }) {
+export default function RecetteCard({ recette, selected, onSelect, onAddToPlan, categories }) {
   const sousLabel = SOUS_CAT_LABELS[recette.sous_categorie] ?? recette.sous_categorie;
 
   return (
@@ -33,14 +33,26 @@ export default function RecetteCard({ recette, selected, onSelect, categories })
       {recette.parfum_principal && (
         <div className={styles.cardParfum}>{recette.parfum_principal}</div>
       )}
-      <div className={styles.cardBadges}>
-        {CONTRAINTES_BADGES
-          .filter(({ key }) => recette.contraintes[key])
-          .map(({ key, label }) => (
-            <span key={key} className={styles.cardBadge}>{label}</span>
-          ))}
-        {recette.a_verifier && (
-          <span className={styles.cardBadgeWarn}>⚠ À vérifier</span>
+      <div className={styles.cardFooter}>
+        <div className={styles.cardBadges}>
+          {CONTRAINTES_BADGES
+            .filter(({ key }) => recette.contraintes[key])
+            .map(({ key, label }) => (
+              <span key={key} className={styles.cardBadge}>{label}</span>
+            ))}
+          {recette.a_verifier && (
+            <span className={styles.cardBadgeWarn}>⚠ À vérifier</span>
+          )}
+        </div>
+        {onAddToPlan && (
+          <button
+            className={styles.cardAddBtn}
+            onClick={e => { e.stopPropagation(); onAddToPlan(recette); }}
+            title="Ajouter au plan de travail"
+            aria-label={`Ajouter ${recette.nom} au plan`}
+          >
+            + Ajouter
+          </button>
         )}
       </div>
     </div>
