@@ -282,6 +282,19 @@ ol.process li { margin-bottom: 6px; }
   color: var(--muted);
   flex-shrink: 0;
 }
+.nav-item__badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: #e63946;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
 
 /* ── Sidebar foot ── */
 .sidebar-foot {

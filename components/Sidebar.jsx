@@ -20,30 +20,57 @@ import {
 } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { href: '/',              label: 'Créer une recette',       icon: ChefHat,         active: true  },
-  { href: '/ingredients',   label: 'Bibliothèque',             icon: Library,         active: true  },
-  { href: '/bibliotheque',  label: 'Bibliothèque de recettes', icon: BookOpen,        active: true  },
-  { href: '/moules',        label: 'Moules',                   icon: Circle,          active: true  },
-  { href: '/plan-de-travail', label: 'Plan de travail',        icon: LayoutDashboard, active: true  },
-  { href: '/compositions',   label: 'Mes compositions',        icon: Layers,          active: true  },
-  { href: '/templates',     label: 'Templates & textures',     icon: LayoutTemplate,  active: false },
-  { href: '/recettes',      label: 'Mes recettes',             icon: Bookmark,        active: false },
-  { href: '/profils',       label: 'Profils & contraintes',    icon: User,            active: false },
-  { href: '/parametres',    label: 'Paramètres',               icon: Settings,        active: false },
+  { href: '/',               label: 'Créer une recette',  icon: ChefHat,         active: true  },
+  { href: '/ingredients',    label: 'Ingrédients',        icon: Library,         active: true  },
+  { href: '/bibliotheque',   label: 'Recettes',           icon: BookOpen,        active: true  },
+  { href: '/moules',         label: 'Moules',             icon: Circle,          active: true  },
+  { href: '/plan-de-travail', label: 'Plan de travail',   icon: LayoutDashboard, active: true  },
+  { href: '/compositions',   label: 'Mes compositions',   icon: Layers,          active: true  },
+  { href: '/templates',      label: 'Templates & textures', icon: LayoutTemplate, active: false,
+    tooltip: 'Templates & textures — bientôt disponible' },
+  { href: '/recettes',       label: 'Mes recettes',       icon: Bookmark,        active: false,
+    tooltip: 'Mes recettes personnelles — bientôt disponible' },
+  { href: '/profils',        label: 'Profils & contraintes', icon: User,          active: false,
+    tooltip: 'Profils & contraintes — bientôt disponible' },
+  { href: '/parametres',     label: 'Paramètres',         icon: Settings,        active: false,
+    tooltip: 'Paramètres — bientôt disponible' },
 ];
+
+const PLAN_KEY = 'pastry-gen-plan';
 
 const STORAGE_KEY = 'pastry-gen-sidebar-collapsed';
 
+function readPlanCount() {
+  try {
+    const raw = localStorage.getItem(PLAN_KEY);
+    if (!raw) return 0;
+    return JSON.parse(raw).slots?.length ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
 export default function Sidebar({ mobileOpen, onMobileClose }) {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [collapsed,  setCollapsed]  = useState(false);
+  const [mounted,    setMounted]    = useState(false);
+  const [planCount,  setPlanCount]  = useState(0);
 
   // Lire la préférence stockée côté client uniquement
   useEffect(() => {
     setMounted(true);
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored !== null) setCollapsed(stored === 'true');
+  }, []);
+
+  // Badge plan de travail — lecture initiale + écoute storage cross-tab
+  useEffect(() => {
+    setPlanCount(readPlanCount());
+    function onStorage(e) {
+      if (e.key === PLAN_KEY || e.key === null) setPlanCount(readPlanCount());
+    }
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
   }, []);
 
   function toggle() {
@@ -92,14 +119,16 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
 
         {/* Navigation */}
         <nav className="sidebar-nav">
-          {NAV_ITEMS.map(({ href, label, icon: Icon, active }) => {
+          {NAV_ITEMS.map(({ href, label, icon: Icon, active, tooltip }) => {
             const isCurrent = pathname === href;
+            const isPlan    = href === '/plan-de-travail';
+
             if (!active) {
               return (
                 <span
                   key={href}
                   className={`nav-item nav-item--disabled${isCollapsed ? ' nav-item--icon-only' : ''}`}
-                  title="Bientôt disponible"
+                  title={tooltip ?? `${label} — bientôt disponible`}
                   aria-disabled="true"
                 >
                   <span className="nav-item__icon"><Icon size={18} strokeWidth={1.8} /></span>
@@ -118,6 +147,9 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
               >
                 <span className="nav-item__icon"><Icon size={18} strokeWidth={1.8} /></span>
                 {!isCollapsed && <span className="nav-item__label">{label}</span>}
+                {!isCollapsed && isPlan && planCount > 0 && (
+                  <span className="nav-item__badge">{planCount}</span>
+                )}
               </Link>
             );
           })}
