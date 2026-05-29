@@ -1,0 +1,236 @@
+.page {
+  padding: 32px 32px 80px;
+  max-width: 1200px;
+}
+
+/* ── En-tête ─────────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* ── Barre de filtres ────────────────────────────────────────────────────── */
+
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+
+.filterRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.toggleObsolete {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.searchInput {
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 13px;
+  font-family: inherit;
+  width: 180px;
+}
+.searchInput:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+/* ── Tableau ─────────────────────────────────────────────────────────────── */
+
+.tableWrapper {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+  background: var(--bg);
+}
+
+.tr {
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.tr:last-child { border-bottom: none; }
+.tr:hover { background: var(--accent-soft); }
+
+.trEditing {
+  background: #fdfaf7;
+  cursor: default;
+}
+.trEditing:hover { background: #fdfaf7; }
+
+.td {
+  padding: 9px 12px;
+  vertical-align: middle;
+}
+
+/* ── Cellule nom ─────────────────────────────────────────────────────────── */
+
+.nomCell {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 500;
+}
+
+.editedIcon {
+  color: var(--accent);
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+/* ── Texte muted ─────────────────────────────────────────────────────────── */
+
+.muted { color: var(--muted); }
+
+/* ── Inputs édition inline ───────────────────────────────────────────────── */
+
+.inputEdit {
+  padding: 5px 8px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 13px;
+  font-family: inherit;
+  width: 120px;
+}
+.inputEdit:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+.inputNum { width: 80px; text-align: right; }
+
+/* ── Boutons d'action ────────────────────────────────────────────────────── */
+
+.actionRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.btnSave {
+  padding: 5px 12px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.btnSave:hover { background: #6f4730; }
+
+.btnCancel {
+  padding: 5px 10px;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.btnCancel:hover { background: var(--bg); }
+
+.btnReset {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.btnReset:hover { background: #fce8d4; color: var(--warn); border-color: var(--warn); }
+
+/* ── Badges statut ───────────────────────────────────────────────────────── */
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badgeOk {
+  background: #e3efe6;
+  color: var(--ok);
+}
+
+.badgeObsolete {
+  background: #fce8d4;
+  color: var(--warn);
+}
+
+.badgeNone {
+  background: var(--bg);
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+
+/* ── État vide ───────────────────────────────────────────────────────────── */
+
+.empty {
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  .page { padding: 20px 16px 60px; }
+  .header { flex-direction: column; align-items: flex-start; }
+  .filterRight { flex-wrap: wrap; }
+  .searchInput { width: 100%; }
+}

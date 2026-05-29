@@ -17,6 +17,7 @@ import {
   LayoutDashboard,
   Circle,
   Layers,
+  Tag,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -24,6 +25,7 @@ const NAV_ITEMS = [
   { href: '/ingredients',    label: 'Ingrédients',        icon: Library,         active: true  },
   { href: '/bibliotheque',   label: 'Recettes',           icon: BookOpen,        active: true  },
   { href: '/moules',         label: 'Moules',             icon: Circle,          active: true  },
+  { href: '/mercuriale',     label: 'Mercuriale',         icon: Tag,             active: true  },
   { href: '/plan-de-travail', label: 'Plan de travail',   icon: LayoutDashboard, active: true  },
   { href: '/compositions',   label: 'Mes compositions',   icon: Layers,          active: true  },
   { href: '/templates',      label: 'Templates & textures', icon: LayoutTemplate, active: false,

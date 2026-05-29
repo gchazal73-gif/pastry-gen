@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { INGREDIENTS_METIER } from '../../lib/ingredients-metier.js';
+import { getMergedMetier } from '../../lib/mercuriale-store.js';
 import { calculerCoutAvecRatios, formatPrix } from '../../lib/cout.js';
 import { getRecetteAllergenes, formatLabelInco } from '../../lib/allergenes.js';
 import { calculerDlcRecette, getRecommandationsConservation, DISCLAIMER_DLC } from '../../lib/conservation.js';
@@ -34,7 +35,7 @@ export default function RecapMetier({ slots, recettesMap }) {
   const allLignes = useMemo(() => slotsData.flatMap(s => s.lignes), [slotsData]);
 
   const coutTotal = useMemo(
-    () => calculerCoutAvecRatios(allLignes, INGREDIENTS_METIER),
+    () => calculerCoutAvecRatios(allLignes, getMergedMetier(INGREDIENTS_METIER)),
     [allLignes],
   );
 
@@ -92,7 +93,7 @@ export default function RecapMetier({ slots, recettesMap }) {
               ))}
             </div>
             {slotsData.map(({ recette, masse, lignes }, i) => {
-              const c = calculerCoutAvecRatios(lignes, INGREDIENTS_METIER);
+              const c = calculerCoutAvecRatios(lignes, getMergedMetier(INGREDIENTS_METIER));
               return (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--line)', fontSize: 12 }}>
                   <span>{recette.nom}</span>

@@ -7,6 +7,7 @@ import { TEMPLATES } from '@/lib/templates.js';
 import { suggererAccords, suggererTextures, suggererCompositions } from '@/lib/moteur_accords.js';
 import { togglePlannifiee } from '@/lib/compositions-store.js';
 import { INGREDIENTS_METIER } from '@/lib/ingredients-metier.js';
+import { getMergedMetier } from '@/lib/mercuriale-store.js';
 import { calculerCoutAvecRatios, formatPrix } from '@/lib/cout.js';
 import { getRecetteAllergenes, formatLabelInco } from '@/lib/allergenes.js';
 import { calculerDlcRecette, getRecommandationsConservation } from '@/lib/conservation.js';
@@ -412,7 +413,7 @@ function EncartCout({ lignes }) {
   };
 
   const cout = useMemo(
-    () => calculerCoutAvecRatios(lignes, INGREDIENTS_METIER, { multiplicateur_revient: multRevient, multiplicateur_pvttc: multPvttc }),
+    () => calculerCoutAvecRatios(lignes, getMergedMetier(INGREDIENTS_METIER), { multiplicateur_revient: multRevient, multiplicateur_pvttc: multPvttc }),
     [lignes, multRevient, multPvttc],
   );
 

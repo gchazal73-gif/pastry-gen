@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Printer } from 'lucide-react';
 import { RECETTES } from '../../../lib/recettes/index.js';
 import { INGREDIENTS_METIER } from '../../../lib/ingredients-metier.js';
+import { getMergedMetier } from '../../../lib/mercuriale-store.js';
 import { calculerCoutAvecRatios, formatPrix } from '../../../lib/cout.js';
 import { getRecetteAllergenes, formatLabelInco } from '../../../lib/allergenes.js';
 import { calculerDlcRecette, DISCLAIMER_DLC } from '../../../lib/conservation.js';
@@ -229,7 +230,7 @@ function EtiquetteVitrine({ slot, recette, today, isLast }) {
   const masse = Number(slot.masse) > 0 ? Number(slot.masse) : recette.masse_totale_g;
   const lignes = lignesPourMoteur(recette, masse);
 
-  const cout      = calculerCoutAvecRatios(lignes, INGREDIENTS_METIER);
+  const cout      = calculerCoutAvecRatios(lignes, getMergedMetier(INGREDIENTS_METIER));
   const allergenes = getRecetteAllergenes(lignes, INGREDIENTS_METIER);
   const label     = formatLabelInco(allergenes.allergenes_presents, allergenes.traces_possibles);
   const dlc       = calculerDlcRecette(lignes, recette.sous_categorie, INGREDIENTS_METIER);
