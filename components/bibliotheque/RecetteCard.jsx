@@ -17,7 +17,8 @@ const CONTRAINTES_BADGES = [
   { key: 'sans_lactose', label: 'SL'          },
 ];
 
-export default function RecetteCard({ recette, selected, onSelect, onAddToPlan, categories }) {
+export default function RecetteCard({ recette, selected, onSelect, onAddToPlan, categories,
+  isFavori = false, onToggleFavori }) {
   const sousLabel = SOUS_CAT_LABELS[recette.sous_categorie] ?? recette.sous_categorie;
 
   return (
@@ -27,7 +28,18 @@ export default function RecetteCard({ recette, selected, onSelect, onAddToPlan, 
       role="button"
       tabIndex={0}
       onKeyDown={e => e.key === 'Enter' && onSelect(recette)}
+      style={{ position: 'relative' }}
     >
+      {onToggleFavori && (
+        <button
+          className={`${styles.favBtn} ${isFavori ? styles.favBtnActive : ''}`}
+          onClick={e => onToggleFavori(e, recette.id)}
+          aria-label={isFavori ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+          title={isFavori ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+        >
+          {isFavori ? '♥' : '♡'}
+        </button>
+      )}
       <div className={styles.cardCat}>{sousLabel}</div>
       <div className={styles.cardNom}>{recette.nom}</div>
       {recette.parfum_principal && (

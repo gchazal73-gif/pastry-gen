@@ -23,6 +23,7 @@ export default function FilterPanel({
   tri, setTri,
   filtreIngredient, setFiltreIngredient,
   tousLesIngredients = [],
+  filtreFavoris, setFiltreFavoris, nbFavoris = 0,
 }) {
   const cats = Object.entries(CATEGORIES).sort((a, b) => a[1].ordre - b[1].ordre);
   const catCounts = {};
@@ -34,7 +35,7 @@ export default function FilterPanel({
     );
   }
 
-  const hasFilters = filtreCategorie || filtresContraintes.length > 0 || recherche.trim() || tri || filtreIngredient.trim();
+  const hasFilters = filtreCategorie || filtresContraintes.length > 0 || recherche.trim() || tri || filtreIngredient.trim() || filtreFavoris;
 
   return (
     <aside className={styles.filterPanel}>
@@ -48,6 +49,18 @@ export default function FilterPanel({
           onChange={e => setRecherche(e.target.value)}
         />
       </div>
+
+      {nbFavoris > 0 && (
+        <div className={styles.filterSection}>
+          <button
+            className={`${styles.catItem} ${filtreFavoris ? styles.catItemActive : ''}`}
+            onClick={() => setFiltreFavoris(f => !f)}
+          >
+            <span>♥ Mes favoris</span>
+            <span className={styles.catCount}>{nbFavoris}</span>
+          </button>
+        </div>
+      )}
 
       <div className={styles.filterSection}>
         <p className={styles.filterTitle}>Par ingrédient</p>
@@ -146,6 +159,7 @@ export default function FilterPanel({
             setRecherche('');
             setTri('');
             setFiltreIngredient('');
+            setFiltreFavoris(false);
           }}
         >
           Réinitialiser

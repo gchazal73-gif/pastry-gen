@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { RECETTES, CATEGORIES } from '../../lib/recettes/index.js';
 import { getDensite, getDefaultEpaisseur, ASSIGNATION_DEFAUT } from '../../lib/densites.js';
 import { computeRecipeNutrition } from '../../lib/nutrition.js';
@@ -8,6 +8,7 @@ import FilterPanel   from '../../components/bibliotheque/FilterPanel.jsx';
 import RecetteCard   from '../../components/bibliotheque/RecetteCard.jsx';
 import RecetteDetail from '../../components/bibliotheque/RecetteDetail.jsx';
 import styles from './bibliotheque.module.css';
+import { getFavoris, toggleFavori } from '../../lib/favoris-store.js';
 
 const PLAN_KEY = 'pastry-gen-plan';
 
@@ -21,10 +22,14 @@ export default function BibliothequePage() {
   const [recherche,          setRecherche]           = useState('');
   const [tri,                setTri]                 = useState('');
   const [filtreIngredient,   setFiltreIngredient]    = useState('');
+  const [favoris,            setFavoris]             = useState([]);
+  const [filtreFavoris,      setFiltreFavoris]       = useState(false);
   const [selected,           setSelected]            = useState(null);
   const [masse,              setMasse]               = useState(null);
   const [toast,              setToast]               = useState(false);
   const toastTimer = useRef(null);
+
+  useEffect(() => { setFavoris(getFavoris()); }, []);
 
   const tousLesIngredients = useMemo(() => {
     const set = new Set();
@@ -57,6 +62,7 @@ export default function BibliothequePage() {
         x.description.toLowerCase().includes(q)
       );
     }
+    if (filtreFavoris) r = r.filter(x => favoris.includes(x.id));
     if (filtreIngredient.trim()) {
       const q = filtreIngredient.toLowerCase();
       r = r.filter(recette => {
@@ -80,7 +86,12 @@ export default function BibliothequePage() {
       r = [...r].sort((a, b) => kcal(a) - kcal(b));
     }
     return r;
-  }, [filtreCategorie, filtresContraintes, recherche, tri, filtreIngredient]);
+  }, [filtreCategorie, filtresContraintes, recherche, tri, filtreIngredient, filtreFavoris, favoris]);
+
+  function handleToggleFavori(e, id) {
+    e.stopPropagation();
+    setFavoris(toggleFavori(id));
+  }
 
   function handleSelect(recette) {
     if (selected?.id === recette.id) {
@@ -144,6 +155,9 @@ export default function BibliothequePage() {
           filtreIngredient={filtreIngredient}
           setFiltreIngredient={setFiltreIngredient}
           tousLesIngredients={tousLesIngredients}
+          filtreFavoris={filtreFavoris}
+          setFiltreFavoris={setFiltreFavoris}
+          nbFavoris={favoris.length}
         />
 
         <div className={styles.cards}>
@@ -162,6 +176,8 @@ export default function BibliothequePage() {
                   onSelect={handleSelect}
                   onAddToPlan={addToPlan}
                   categories={CATEGORIES}
+                  isFavori={favoris.includes(r.id)}
+                  onToggleFavori={handleToggleFavori}
                 />
               ))}
             </div>

@@ -252,6 +252,24 @@
   font-weight: 500;
 }
 
+/* ── Favori button ──────────────────────────────────────────────────────── */
+.favBtn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--muted);
+  line-height: 1;
+  padding: 2px;
+  transition: color 0.15s, transform 0.15s;
+}
+.favBtn:hover { color: var(--accent); transform: scale(1.2); }
+.favBtnActive { color: #e63946; }
+.favBtnActive:hover { color: #c1121f; }
+
 /* ── Detail panel ───────────────────────────────────────────────────────── */
 .detailPanel {
   position: sticky;
