@@ -4,6 +4,9 @@ import { useState, useMemo } from 'react';
 import { X, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import styles from '../../app/bibliotheque/bibliotheque.module.css';
 import { computeRecipeNutrition } from '../../lib/nutrition.js';
+import { INGREDIENTS_METIER } from '../../lib/ingredients-metier.js';
+import { getMergedMetier }     from '../../lib/mercuriale-store.js';
+import { calculerCoutAvecRatios, formatPrix } from '../../lib/cout.js';
 
 const STORAGE_KEY = 'pastry-gen-plan';
 
@@ -39,6 +42,22 @@ const PRESETS = [
   { label: '×1',   mult: 1   },
   { label: '×2',   mult: 2   },
 ];
+
+function lignesFromRecette(recette, masse) {
+  const ratio = masse / recette.masse_totale_g;
+  if (recette.type === 'assemblage') {
+    return recette.composants.flatMap(comp =>
+      comp.ingredients.map(ing => ({
+        nom: ing.nom,
+        g: (ing.pct / 100) * comp.masse_g * ratio,
+      }))
+    );
+  }
+  return recette.ingredients.map(ing => ({
+    nom: ing.nom,
+    g:   (ing.pct / 100) * masse,
+  }));
+}
 
 function IngredientsTable({ ingredients, total }) {
   return (
@@ -83,6 +102,16 @@ export default function RecetteDetail({ recette, masse, setMasse, onClose }) {
   const masseNum = Number(masse) > 0 ? Number(masse) : recette.masse_totale_g;
 
   const nutrition = useMemo(() => computeRecipeNutrition(recette, profilAJR), [recette, profilAJR]);
+  const metier = useMemo(
+    () => typeof getMergedMetier === 'function'
+      ? getMergedMetier(INGREDIENTS_METIER)
+      : INGREDIENTS_METIER,
+    [],
+  );
+  const cout = useMemo(
+    () => calculerCoutAvecRatios(lignesFromRecette(recette, masseNum), metier),
+    [recette, masseNum, metier],
+  );
   const isAssemblage = recette.type === 'assemblage';
   const ratio = masseNum / recette.masse_totale_g;
 
@@ -295,6 +324,38 @@ export default function RecetteDetail({ recette, masse, setMasse, onClose }) {
         <div className="section">
           <h4>Note du concepteur</h4>
           <div className="note">{recette.note_concepteur}</div>
+        </div>
+      )}
+
+      {/* Coût matière */}
+      {cout.cout_total_eur > 0 && (
+        <div className="section">
+          <h4>Coût matière</h4>
+          <div className={styles.infoGrid}>
+            <div className={styles.infoItem}>
+              <div className={styles.infoLabel}>Coût matière</div>
+              <div className={styles.infoValue}>{formatPrix(cout.cout_total_eur)}</div>
+            </div>
+            <div className={styles.infoItem}>
+              <div className={styles.infoLabel}>Pour 100 g</div>
+              <div className={styles.infoValue}>{formatPrix(cout.cout_pour_100g_eur * 100)}</div>
+            </div>
+            <div className={styles.infoItem}>
+              <div className={styles.infoLabel}>Prix de revient</div>
+              <div className={styles.infoValue}>{formatPrix(cout.prix_de_revient_eur)}</div>
+            </div>
+            <div className={styles.infoItem}>
+              <div className={styles.infoLabel}>PVTTC estimé</div>
+              <div className={styles.infoValue} style={{ fontWeight: 600, color: 'var(--accent)' }}>
+                {formatPrix(cout.pvttc_eur)}
+              </div>
+            </div>
+          </div>
+          {cout.taux_couverture_pct < 100 && (
+            <div className="note" style={{ fontSize: 11, marginTop: 6, borderColor: 'var(--warn)' }}>
+              ⚠ Couverture {cout.taux_couverture_pct} % — {cout.ingredients_sans_prix.length} ingrédient{cout.ingredients_sans_prix.length > 1 ? 's' : ''} sans prix.
+            </div>
+          )}
         </div>
       )}
 

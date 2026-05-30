@@ -21,6 +21,8 @@ export default function FilterPanel({
   filtresContraintes, setFiltresContraintes,
   recherche, setRecherche,
   tri, setTri,
+  filtreIngredient, setFiltreIngredient,
+  tousLesIngredients = [],
 }) {
   const cats = Object.entries(CATEGORIES).sort((a, b) => a[1].ordre - b[1].ordre);
   const catCounts = {};
@@ -32,7 +34,7 @@ export default function FilterPanel({
     );
   }
 
-  const hasFilters = filtreCategorie || filtresContraintes.length > 0 || recherche.trim() || tri;
+  const hasFilters = filtreCategorie || filtresContraintes.length > 0 || recherche.trim() || tri || filtreIngredient.trim();
 
   return (
     <aside className={styles.filterPanel}>
@@ -45,6 +47,31 @@ export default function FilterPanel({
           value={recherche}
           onChange={e => setRecherche(e.target.value)}
         />
+      </div>
+
+      <div className={styles.filterSection}>
+        <p className={styles.filterTitle}>Par ingrédient</p>
+        <input
+          className={styles.searchInput}
+          type="text"
+          placeholder="Ex : gélatine, beurre…"
+          value={filtreIngredient}
+          onChange={e => setFiltreIngredient(e.target.value)}
+          list="ingredients-list"
+        />
+        <datalist id="ingredients-list">
+          {tousLesIngredients.map(nom => (
+            <option key={nom} value={nom} />
+          ))}
+        </datalist>
+        {filtreIngredient && (
+          <button
+            style={{ fontSize: 11, marginTop: 4, color: 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+            onClick={() => setFiltreIngredient('')}
+          >
+            ✕ Effacer
+          </button>
+        )}
       </div>
 
       <div className={styles.filterSection}>
@@ -118,6 +145,7 @@ export default function FilterPanel({
             setFiltresContraintes([]);
             setRecherche('');
             setTri('');
+            setFiltreIngredient('');
           }}
         >
           Réinitialiser

@@ -20,10 +20,25 @@ export default function BibliothequePage() {
   const [filtresContraintes, setFiltresContraintes]  = useState([]);
   const [recherche,          setRecherche]           = useState('');
   const [tri,                setTri]                 = useState('');
+  const [filtreIngredient,   setFiltreIngredient]    = useState('');
   const [selected,           setSelected]            = useState(null);
   const [masse,              setMasse]               = useState(null);
   const [toast,              setToast]               = useState(false);
   const toastTimer = useRef(null);
+
+  const tousLesIngredients = useMemo(() => {
+    const set = new Set();
+    RECETTES.forEach(r => {
+      if (r.type === 'assemblage') {
+        r.composants?.forEach(comp =>
+          comp.ingredients?.forEach(ing => set.add(ing.nom))
+        );
+      } else {
+        r.ingredients?.forEach(ing => set.add(ing.nom));
+      }
+    });
+    return [...set].sort((a, b) => a.localeCompare(b, 'fr'));
+  }, []);
 
   const recettesFiltrees = useMemo(() => {
     let r = RECETTES;
@@ -42,6 +57,15 @@ export default function BibliothequePage() {
         x.description.toLowerCase().includes(q)
       );
     }
+    if (filtreIngredient.trim()) {
+      const q = filtreIngredient.toLowerCase();
+      r = r.filter(recette => {
+        const ings = recette.type === 'assemblage'
+          ? recette.composants?.flatMap(c => c.ingredients ?? [])
+          : recette.ingredients ?? [];
+        return ings.some(ing => ing.nom.toLowerCase().includes(q));
+      });
+    }
     if (tri === 'nom')      r = [...r].sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
     if (tri === 'masse')    r = [...r].sort((a, b) => (a.masse_totale_g ?? 0) - (b.masse_totale_g ?? 0));
     if (tri === 'calories') {
@@ -56,7 +80,7 @@ export default function BibliothequePage() {
       r = [...r].sort((a, b) => kcal(a) - kcal(b));
     }
     return r;
-  }, [filtreCategorie, filtresContraintes, recherche, tri]);
+  }, [filtreCategorie, filtresContraintes, recherche, tri, filtreIngredient]);
 
   function handleSelect(recette) {
     if (selected?.id === recette.id) {
@@ -117,6 +141,9 @@ export default function BibliothequePage() {
           setRecherche={setRecherche}
           tri={tri}
           setTri={setTri}
+          filtreIngredient={filtreIngredient}
+          setFiltreIngredient={setFiltreIngredient}
+          tousLesIngredients={tousLesIngredients}
         />
 
         <div className={styles.cards}>
