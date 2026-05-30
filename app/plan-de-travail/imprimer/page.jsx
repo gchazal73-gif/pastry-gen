@@ -160,8 +160,39 @@ function FicheTechnique({ slot, recette, today, isLast }) {
   );
 }
 
+/* ── Helper : groupement par fournisseur ─────────────────────────────────── */
+function grouperParFournisseur(recap, ingredientsMetier) {
+  const groupes = {};
+
+  for (const [nom, g] of recap) {
+    const metier = ingredientsMetier[nom]
+      ?? ingredientsMetier[
+           Object.keys(ingredientsMetier).find(k => k.toLowerCase() === nom.toLowerCase()) ?? ''
+         ];
+    const fournisseur    = metier?.fournisseur ?? 'Sans fournisseur';
+    const prix_eur_par_g = metier?.prix_eur_par_g ?? null;
+    const cout_eur       = prix_eur_par_g != null ? Math.round(prix_eur_par_g * g * 100) / 100 : null;
+
+    if (!groupes[fournisseur]) {
+      groupes[fournisseur] = { fournisseur, lignes: [], sous_total_g: 0, sous_total_eur: 0 };
+    }
+    groupes[fournisseur].lignes.push({ nom, g, prix_eur_par_g, cout_eur });
+    groupes[fournisseur].sous_total_g += g;
+    if (cout_eur != null) groupes[fournisseur].sous_total_eur += cout_eur;
+  }
+
+  return Object.values(groupes).sort((a, b) => {
+    if (a.fournisseur === 'Sans fournisseur') return 1;
+    if (b.fournisseur === 'Sans fournisseur') return -1;
+    return a.fournisseur.localeCompare(b.fournisseur, 'fr');
+  });
+}
+
 /* ── Sous-composant : bon d'économat ─────────────────────────────────────── */
 function BonEconomat({ recap, slotsWithRecettes, today, totalGeneral }) {
+  const groupes  = grouperParFournisseur(recap, getMergedMetier(INGREDIENTS_METIER));
+  const totalEur = groupes.reduce((s, g) => s + g.sous_total_eur, 0);
+
   return (
     <div className={styles.economat}>
       <div className={styles.economHeader}>
@@ -172,6 +203,7 @@ function BonEconomat({ recap, slotsWithRecettes, today, totalGeneral }) {
         </div>
       </div>
 
+      {/* Récap des préparations */}
       <div className="section">
         <h4>Préparations du plan</h4>
         <ul className={styles.economPreps}>
@@ -182,33 +214,58 @@ function BonEconomat({ recap, slotsWithRecettes, today, totalGeneral }) {
         </ul>
       </div>
 
-      <div className="section">
-        <h4>Ingrédients</h4>
-        <table className="ingredients">
-          <thead>
-            <tr>
-              <th>Ingrédient</th>
-              <th style={{ textAlign: 'right' }}>Quantité</th>
-              <th className={styles.checkCol}>✓</th>
-            </tr>
-          </thead>
-          <tbody>
-            {recap.map(([nom, g]) => (
-              <tr key={nom}>
-                <td>{nom}</td>
-                <td className="qty">{g} g</td>
-                <td className={styles.checkCol}>□</td>
+      {/* Un bloc par fournisseur */}
+      {groupes.map(({ fournisseur, lignes, sous_total_g, sous_total_eur }) => (
+        <div key={fournisseur} className="section">
+          <h4 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <span>{fournisseur}</span>
+            <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--muted)' }}>
+              {sous_total_g} g
+              {sous_total_eur > 0 && ` · ${formatPrix(sous_total_eur)}`}
+            </span>
+          </h4>
+          <table className="ingredients">
+            <thead>
+              <tr>
+                <th>Ingrédient</th>
+                <th style={{ textAlign: 'right' }}>Qté</th>
+                <th style={{ textAlign: 'right' }}>Coût HT</th>
+                <th className={styles.checkCol}>✓</th>
               </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr className="total">
-              <td>Total</td>
-              <td className="qty">{totalGeneral} g</td>
-              <td></td>
-            </tr>
-          </tfoot>
-        </table>
+            </thead>
+            <tbody>
+              {lignes.map(({ nom, g, cout_eur }) => (
+                <tr key={nom}>
+                  <td>{nom}</td>
+                  <td className="qty">{g} g</td>
+                  <td className="qty" style={{ color: 'var(--muted)' }}>
+                    {cout_eur != null ? formatPrix(cout_eur) : '—'}
+                  </td>
+                  <td className={styles.checkCol}>□</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ))}
+
+      {/* Total général */}
+      <div style={{
+        marginTop: 16,
+        padding: '10px 14px',
+        background: 'var(--bg)',
+        border: '1px solid var(--line)',
+        borderRadius: 8,
+        display: 'flex',
+        justifyContent: 'space-between',
+        fontWeight: 600,
+        fontSize: 14,
+      }}>
+        <span>Total général</span>
+        <span>
+          {totalGeneral} g
+          {totalEur > 0 && ` · ${formatPrix(totalEur)}`}
+        </span>
       </div>
     </div>
   );
