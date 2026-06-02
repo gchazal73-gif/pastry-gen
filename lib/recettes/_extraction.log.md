@@ -110,3 +110,51 @@ Source : **Chocolats et confiserie de l'école Lenôtre T2**, François Legras &
 | mayorque-ln2 | Lenotre T2 | 81 | Le Mayorque | ⚠ à vérifier (scan) |
 
 **Total Lenôtre T2 : 50 nouvelles entrées** (+ 1 nouvelle catégorie : confitures, ordre 17)
+
+---
+
+## 2026-06-02 — Benghanem — Batch 1 : LES PÂTES (pp. 13–52)
+
+Source : **Le Grand Cours de Pâtisserie — L'essentiel de la pâtisserie**, Eddie Benghanem, 292 pages, 475 entrées TOC.
+
+### Pâtes de base (pates.js) — 8 entrées
+
+| ID recette | PDF | Page | Titre original | Statut |
+|---|---|---|---|---|
+| pate-brisee-eb | Benghanem | 14 | Pâte brisée de base (pâte à foncer) | ✓ validé |
+| pate-brisee-noisette-eb | Benghanem | 14 | Pâte brisée à la noisette | ✓ validé |
+| pate-sucree-eb | Benghanem | 21 | Pâte sucrée | ✓ validé |
+| pate-sablee-eb | Benghanem | 25 | Pâte sablée de base | ✓ validé |
+| sable-breton-eb | Benghanem | 25 | Sablé breton | ✓ validé |
+| pate-linzer-eb | Benghanem | 36 | Pâte Linzer | ✓ validé |
+| pate-crumble-eb | Benghanem | 40 | Pâte à crumble | ✓ validé |
+| pate-etirer-eb | Benghanem | 46 | Pâte à étirer | ✓ validé |
+
+### Cookies (biscuits.js) — 5 entrées
+
+| ID recette | PDF | Page | Titre original | Statut |
+|---|---|---|---|---|
+| cookie-cacahuete-eb | Benghanem | 49 | Cookies au beurre de cacahuètes | ✓ validé |
+| cookie-chocolat-noisette-eb | Benghanem | 49 | Cookies au chocolat noir et noisettes | ✓ validé |
+| cookie-tout-chocolat-eb | Benghanem | 49 | Cookies tout chocolat | ✓ validé |
+| cookie-raisins-secs-eb | Benghanem | 49 | Cookies aux raisins secs | ✓ validé |
+| cookie-sucre-brun-eb | Benghanem | 49 | Cookies au sucre brun | ✓ validé |
+
+### Assemblages (assemblages.js) — 11 entrées
+
+| ID recette | PDF | Page | Titre original | Moule | Statut |
+|---|---|---|---|---|---|
+| chaussons-pommes-eb | Benghanem | 15 | Chaussons aux pommes | ø 120 mm | ✓ validé |
+| tarte-normande-pommes-eb | Benghanem | 16 | Tarte normande aux pommes | ø 24 cm | ✓ validé |
+| cheesecake-eb | Benghanem | 18 | Cheesecake | cadre 20×20×2 cm | ✓ validé |
+| tarte-bourdaloue-eb | Benghanem | 21 | Tarte bourdaloue | ø 20 cm | ✓ validé |
+| tarte-bourdaloue-mousse-chocolat-eb | Benghanem | 22 | Tarte bourdaloue mousse au chocolat | ø 5 cm indiv. | ⚠ lait OCR corrigé |
+| tartelettes-citron-framboise-eb | Benghanem | 24 | Tartelettes citron-framboise | demi-sphères ø 5/3 cm | ✓ validé |
+| sable-breton-pomme-verte-eb | Benghanem | 26 | Sablé breton acidulé à la pomme verte | cadre 20×20 cm | ✓ validé |
+| sables-bretons-caramel-demis-sel-eb | Benghanem | 26 | Sablés bretons au caramel demi-sel | ø 6 cm | ✓ validé |
+| tarte-linzer-framboise-eb | Benghanem | 36 | Tarte linzer à la framboise | ø 22 cm | ✓ validé |
+| gateau-basque-eb | Benghanem | 44 | Gâteau basque | ø 22 cm × h 2 cm | ✓ validé |
+| crumble-pommes-eb | Benghanem | 40 | Crumble aux pommes | ø 8 cm indiv. | ✓ validé |
+
+**Total Benghanem Batch 1 : 24 nouvelles entrées**
+Nutrition : +3 entrées CIQUAL (beurre de cacao, purée de citron, abricots secs) + ~45 nouveaux aliases (Farine T55, sucre glace, chocolats 70%, pommes, etc.)
