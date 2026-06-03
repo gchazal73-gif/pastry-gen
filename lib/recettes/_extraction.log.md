@@ -280,6 +280,36 @@ Entrées pré-existantes (non recréées) : feuilletage-classique/inverse/rapide
 | savarin-pina-colada-eb | Benghanem | 143 | Savarin façon Piña colada | anneau ø 22 cm | ✓ validé |
 
 **Total Benghanem Batch 5 : 9 nouvelles entrées**
+
+---
+
+## 2026-06-03 — Benghanem — Batch 6 : LES PETITS FOURS (pp. 150–170)
+
+Entrées pré-existantes (non recréées) : financier-nature-eb, moelleux-amandes-eb, meringue-*-eb, macarons-*-eb
+
+### Biscuits standalone (biscuits.js) — 6 entrées
+
+| ID recette | PDF | Page | Titre original | Statut |
+|---|---|---|---|---|
+| madeleines-eb | Benghanem | 153 | Madeleines | ✓ validé |
+| tuiles-amandes-eb | Benghanem | 157 | Tuiles aux amandes | ✓ validé |
+| pate-cigarettes-eb | Benghanem | 160 | Pâte à cigarettes | ✓ validé |
+| palets-raisins-eb | Benghanem | 164 | Palets aux raisins | ✓ validé |
+| rocher-coco-eb | Benghanem | 165 | Rocher coco | ✓ validé |
+| speculoos-eb | Benghanem | 168 | Spéculoos classique | ✓ validé |
+
+### Assemblages (assemblages.js) — 5 entrées
+
+| ID recette | PDF | Page | Titre original | Moule | Statut |
+|---|---|---|---|---|---|
+| financier-croustillant-noisette-eb | Benghanem | 150 | Financiers croustillants noisette | 3×8 cm | ✓ validé |
+| madeleine-pina-colada-eb | Benghanem | 155 | Madeleines piña colada | ovales 13×5 cm | ✓ validé |
+| moelleux-coco-fraise-eb | Benghanem | 166 | Moelleux coco-fraise | savarins ø 8 cm | ✓ validé |
+| tarte-chocolat-caramel-sable-eb | Benghanem | 167 | Tarte chocolat caramel | ø 10 cm | ✓ validé |
+| tarte-sablee-creme-speculoos-eb | Benghanem | 170 | Tarte sablée crème spéculoos | 27×9 cm | ✓ validé |
+
+**Total Benghanem Batch 6 : 11 nouvelles entrées**
+Nutrition : noix de coco râpée (CIQUAL) + aliases paillettes feuilletine, quatre-épices
 Nutrition : gingembre frais (CIQUAL) + aliases beurre noisette, fleur d'oranger, citronnelle, Malibu, ananas…
 Nutrition : +1 entrée CIQUAL (miel) + ~30 nouveaux aliases (farine de seigle, huile de noisettes, sirop d'érable, fruits confits, thé, trimoline…)
 Nutrition : +3 entrées CIQUAL (beurre de cacao, purée de citron, abricots secs) + ~45 nouveaux aliases (Farine T55, sucre glace, chocolats 70%, pommes, etc.)
