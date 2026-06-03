@@ -313,3 +313,130 @@ Nutrition : noix de coco râpée (CIQUAL) + aliases paillettes feuilletine, quat
 Nutrition : gingembre frais (CIQUAL) + aliases beurre noisette, fleur d'oranger, citronnelle, Malibu, ananas…
 Nutrition : +1 entrée CIQUAL (miel) + ~30 nouveaux aliases (farine de seigle, huile de noisettes, sirop d'érable, fruits confits, thé, trimoline…)
 Nutrition : +3 entrées CIQUAL (beurre de cacao, purée de citron, abricots secs) + ~45 nouveaux aliases (Farine T55, sucre glace, chocolats 70%, pommes, etc.)
+
+---
+
+## 2026-06-03 — Benghanem — Batch 7 : LES CRÈMES (pp. 177–241)
+
+### Crèmes de base (cremes.js) — 10 nouvelles entrées
+
+| ID recette | PDF | Page | Titre original | Statut |
+|---|---|---|---|---|
+| creme-patissiere-cafe-eb | Benghanem | 359 | Crème pâtissière au café | ✓ validé |
+| ganache-montee-noir-eb | Benghanem | 400 | Ganache montée chocolat noir Manjari | ✓ validé |
+| ganache-montee-lait-eb | Benghanem | 400 | Ganache montée chocolat au lait Jivara | ✓ validé |
+| mousse-marrons-eb | Benghanem | 436 | Mousse aux marrons | ✓ validé |
+| bavarois-base-eb | Benghanem | 450 | Bavarois de base | ✓ validé |
+| bavarois-framboise-eb | Benghanem | 452 | Bavarois à la framboise | ✓ validé |
+| bavarois-chocolat-lait-eb | Benghanem | 454 | Bavarois au chocolat au lait | ✓ validé |
+| mousse-fruits-bois-eb | Benghanem | 456 | Mousse aux fruits des bois | ✓ validé |
+| mousse-exotique-eb | Benghanem | 458 | Mousse aux fruits exotiques | ✓ validé |
+| sabayon-chocolat-eb | Benghanem | 468 | Sabayon au chocolat | ✓ validé |
+
+**Note :** ganache-chocolat-noir-eb et ganache-chocolat-blanc-eb déjà présents dans ganaches.js — doublons supprimés de cremes.js.
+
+### Assemblages (assemblages.js) — 15 nouvelles entrées
+
+| ID recette | PDF | Page | Titre original | Moule | Statut |
+|---|---|---|---|---|---|
+| ile-flottante-eb | Benghanem | 352 | Île flottante | demi-sphères ø 8 cm + 8 verres | ✓ validé |
+| tartelettes-chocolat-eb | Benghanem | 354 | Tartelettes au chocolat | cercles ø 6 cm (×12) | ✓ validé |
+| flan-parisien-eb | Benghanem | 362 | Flan parisien | moule tarte ø 22 cm | ✓ validé |
+| flan-chocolat-cafe-eb | Benghanem | 362 | Flan chocolat-café | cercle ø 20 cm × 4 cm | ✓ validé |
+| souffles-chocolat-eb | Benghanem | 384 | Soufflés au chocolat | 10 ramequins ø 10 cm | ✓ validé |
+| merveilleuse-eb | Benghanem | 390 | Merveilleuse | tapis silicone demi-sphères | ✓ validé |
+| succes-dragee-noisette-eb | Benghanem | 392 | Succès dragée-noisette | disques ø 10 cm | ✓ validé |
+| creme-caramel-eb | Benghanem | 394 | Crème caramel | 12 petits pots | ✓ validé |
+| tarte-fraises-eb | Benghanem | 412 | Tarte aux fraises | silicone 27×9 cm + demi-sphères ø 2 cm | ✓ validé |
+| tarte-vanille-eb | Benghanem | 414 | Tarte à la vanille | silicone 27×9 cm | ✓ validé |
+| riz-au-lait-imperatrice-eb | Benghanem | 460 | Riz au lait impératrice | 10 verrines | ✓ validé |
+| entremets-coco-mangue-eb | Benghanem | 462 | Entremets coco-mangue | cadre inox 30 cm carré | ✓ validé |
+| tarte-amandine-eb | Benghanem | 470 | Tarte amandine | cercles ø 10 cm (×10) | ✓ validé |
+| dartois-eb | Benghanem | 474 | Dartois | plaque 30×10 cm | ✓ validé |
+| tarte-orange-eb | Benghanem | 442 | Tarte à l'orange | cadre inox 20 cm carré | ✓ validé |
+
+**Total Benghanem Batch 7 : 25 nouvelles entrées** (10 crèmes + 15 assemblages)
+Nutrition : +1 CIQUAL (riz blanc cru) + 17 nouveaux aliases (poudre à flan, Nescafé, pulpes de fruits, dextrose, gianduja noisettes, chocolats 66–72%…)
+
+---
+
+## 2026-06-03 — Benghanem — Batch 8 : LES GLACES & LA CONFISERIE (pp. 242–285)
+
+### Glaces & Sorbets (glaces_sorbets.js) — 4 nouvelles entrées
+
+| ID recette | PDF | Page | Titre original | Statut |
+|---|---|---|---|---|
+| glace-chocolat-eb | Benghanem | 480 | Glace au chocolat noir | ✓ validé |
+| glace-noix-coco-eb | Benghanem | 480 | Glace à la noix de coco | ✓ validé |
+| sorbet-chocolat-eb | Benghanem | 484 | Sorbet au chocolat | ✓ validé |
+| parfait-glace-agrumes-eb | Benghanem | 486 | Parfait glacé aux agrumes | ✓ validé |
+
+### Confits / Guimauves / Nougats / Pâtes de fruits (confits.js) — 10 nouvelles entrées
+
+| ID recette | PDF | Page | Titre original | Statut |
+|---|---|---|---|---|
+| pate-fruits-citron-eb | Benghanem | 508 | Pâte de fruits au citron | ✓ validé |
+| pate-fruits-exotique-eb | Benghanem | 508 | Pâte de fruits exotique | ✓ validé |
+| pate-fruits-rouges-eb | Benghanem | 508 | Pâte de fruits aux fruits rouges | ✓ validé |
+| pate-fruits-bois-eb | Benghanem | 508 | Pâte de fruits aux fruits des bois | ✓ validé |
+| confit-citron-eb | Benghanem | 510 | Confit de citron | ✓ validé |
+| confit-orange-eb | Benghanem | 510 | Confit d'orange | ✓ validé |
+| guimauve-blancs-eb | Benghanem | 516 | Guimauve aux blancs d'œufs | ✓ validé |
+| guimauve-fraise-entremets-eb | Benghanem | 516 | Guimauve à la fraise (entremets) | ✓ validé |
+| guimauve-mangue-entremets-eb | Benghanem | 516 | Guimauve à la mangue (entremets) | ✓ validé |
+| nougat-chocolat-eb | Benghanem | 518 | Nougat au chocolat | ✓ validé |
+
+### Caramels variantes + Crèmes à tartiner + Praliné + Nougatine (caramels.js) — 11 nouvelles entrées
+
+| ID recette | PDF | Page | Titre original | Statut |
+|---|---|---|---|---|
+| caramels-exotiques-eb | Benghanem | 522 | Caramels aux fruits exotiques | ✓ validé |
+| caramels-cassis-eb | Benghanem | 522 | Caramels au cassis | ✓ validé |
+| caramels-cafe-pecan-eb | Benghanem | 524 | Caramels au café et noix de pécan | ✓ validé |
+| caramels-tonka-amandes-eb | Benghanem | 524 | Caramels fève de tonka et amandes | ✓ validé |
+| caramels-noisettes-eb | Benghanem | 524 | Caramels aux noisettes | ✓ validé |
+| caramels-citron-pistache-eb | Benghanem | 524 | Caramels citron-pistache | ✓ validé |
+| nougatine-eb | Benghanem | 526 | Nougatine (+ anneaux, disques, opalines) | ✓ validé |
+| praline-cacahuetes-eb | Benghanem | 528 | Praliné aux cacahuètes | ✓ validé |
+| creme-tartiner-caramel-eb | Benghanem | 520 | Crème à tartiner caramel demi-sel Dulcey | ✓ validé |
+| creme-tartiner-fruits-rouges-eb | Benghanem | 520 | Crème à tartiner aux fruits rouges | ✓ validé |
+| creme-tartiner-pistache-eb | Benghanem | 520 | Crème à tartiner pistache | ⚠ a_verifier (praliné approché) |
+| creme-tartiner-noisette-eb | Benghanem | 520 | Crème à tartiner noisette-amande | ✓ validé |
+| creme-tartiner-exotique-eb | Benghanem | 520 | Crème à tartiner fruits exotiques | ✓ validé |
+
+### Ganaches confiserie (ganaches.js) — 2 nouvelles entrées
+
+| ID recette | PDF | Page | Titre original | Statut |
+|---|---|---|---|---|
+| ganache-bonbons-caramel-eb | Benghanem | 538 | Ganache caramel (bonbons) | ✓ validé |
+| ganache-bonbons-citron-vert-eb | Benghanem | 538 | Ganache citron vert (bonbons) | ✓ validé |
+
+### Bonbons moulés (bonbons.js) — 5 nouvelles entrées
+
+| ID recette | PDF | Page | Titre original | Statut |
+|---|---|---|---|---|
+| bonbons-caramel-demi-sel-eb | Benghanem | 542 | Bonbons au caramel demi-sel | ✓ validé |
+| bonbons-passion-eb | Benghanem | 544 | Bonbons jaunes — ganache Passion | ✓ validé |
+| bonbons-caramel-citron-vert-eb | Benghanem | 544 | Bonbons verts — caramel citron vert | ✓ validé |
+| bonbons-caramel-fruits-bois-eb | Benghanem | 544 | Bonbons rouges — caramel fruits des bois | ✓ validé |
+| bonbons-praline-agrumes-eb | Benghanem | 544 | Bonbons orange — praliné agrumes | ✓ validé |
+
+**Total Benghanem Batch 8 : 34 nouvelles entrées** (4 glaces + 10 confits + 13 caramels/crèmes à tartiner + 2 ganaches + 5 bonbons)
+
+---
+
+## Récapitulatif Benghanem — Livre complet (B1–B8)
+
+| Batch | Pages livre | Thème | Nouvelles entrées |
+|---|---|---|---|
+| B1 | 13–52 | Pâtes + assemblages | 24 |
+| B2 | 54–79 | Cakes, brownies, scones | 18 |
+| B3 | 81–95 | Pâtes liquides, choux | 13 |
+| B4 | 100–121 | Biscuits, dacquoises | 8 |
+| B5 | 130–145 | Feuilletées, levées | 9 |
+| B6 | 150–170 | Petits fours | 11 |
+| B7 | 177–241 | Les crèmes | 25 |
+| B8 | 242–285 | Glaces & confiserie | 34 |
+| **Total** | **13–285** | | **142 entrées** |
+
+**Non extraits (pp. 286–292) :** index, bibliographie, table des matières — aucune recette.
