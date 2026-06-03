@@ -191,5 +191,41 @@ Source : **Le Grand Cours de Pâtisserie — L'essentiel de la pâtisserie**, Ed
 | layer-scone-eb | Benghanem | 79 | Layer scone | 5 cercles ø18cm | ✓ validé |
 
 **Total Benghanem Batch 2 : 18 nouvelles entrées**
+
+---
+
+## 2026-06-03 — Benghanem — Batch 3 : PÂTES LIQUIDES + CHOUX (pp. 81–95)
+
+### Biscuits standalone (biscuits.js) — 8 entrées
+
+| ID recette | PDF | Page | Titre original | Statut |
+|---|---|---|---|---|
+| clafoutis-nature-eb | Benghanem | 81 | Clafoutis nature | ✓ validé |
+| crepes-nature-eb | Benghanem | 84 | Crêpes nature | ✓ validé |
+| pancakes-ricotta-eb | Benghanem | 85 | Pancakes lemon ricotta | ✓ validé |
+| pate-a-beignets-eb | Benghanem | 86 | Pâte à beignets | ✓ validé |
+| bugnes-eb | Benghanem | 86 | Pâte à bugnes | ✓ validé |
+| canneles-eb | Benghanem | 89 | Cannelés | ✓ validé |
+| gaufres-liquides-eb | Benghanem | 90 | Gaufres (pâte liquide) | ✓ validé |
+| gaufres-pate-dure-eb | Benghanem | 90 | Gaufres (pâte dure) | ✓ validé |
+
+### Pâte de base (pates.js) — 1 entrée
+
+| ID recette | PDF | Page | Titre original | Statut |
+|---|---|---|---|---|
+| craquelin-eb | Benghanem | 94 | Craquelin | ✓ validé |
+
+### Assemblages (assemblages.js) — 4 entrées
+
+| ID recette | PDF | Page | Titre original | Moule | Statut |
+|---|---|---|---|---|---|
+| far-breton-eb | Benghanem | 81 | Far breton | plat ø 22 cm | ✓ validé |
+| clafoutis-amandes-pommes-eb | Benghanem | 82 | Clafoutis aux amandes et pommes | 12 ramequins ø 6 cm | ✓ validé |
+| beignets-confit-framboises-eb | Benghanem | 87 | Beignets garnis au confit | emporte-pièce ø 5 cm | ✓ validé |
+| choux-chocolat-eb | Benghanem | 95 | Choux au chocolat | choux ø 3 cm | ✓ validé |
+
+**Note B3 :** pate-a-choux-eb et saint-honore-eb déjà présents (extractions antérieures). 4 doublons B1 supprimés de pates.js (pate-brisee-noisette-eb, pate-sucree-eb, sable-breton-eb, pate-linzer-eb).
+
+**Total Benghanem Batch 3 : 13 nouvelles entrées**
 Nutrition : +1 entrée CIQUAL (miel) + ~30 nouveaux aliases (farine de seigle, huile de noisettes, sirop d'érable, fruits confits, thé, trimoline…)
 Nutrition : +3 entrées CIQUAL (beurre de cacao, purée de citron, abricots secs) + ~45 nouveaux aliases (Farine T55, sucre glace, chocolats 70%, pommes, etc.)
