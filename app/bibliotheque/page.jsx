@@ -22,14 +22,13 @@ export default function BibliothequePage() {
   const [recherche,          setRecherche]           = useState('');
   const [tri,                setTri]                 = useState('');
   const [filtreIngredient,   setFiltreIngredient]    = useState('');
-  const [favoris,            setFavoris]             = useState([]);
+  const [favoris,            setFavoris]             = useState(getFavoris);
   const [filtreFavoris,      setFiltreFavoris]       = useState(false);
   const [selected,           setSelected]            = useState(null);
   const [masse,              setMasse]               = useState(null);
   const [toast,              setToast]               = useState(false);
   const toastTimer = useRef(null);
 
-  useEffect(() => { setFavoris(getFavoris()); }, []);
 
   const tousLesIngredients = useMemo(() => {
     const set = new Set();

@@ -39,7 +39,7 @@ function exportCSV(rows) {
 }
 
 export default function MercurialePage() {
-  const [overrides,      setOverridesState]  = useState({});
+  const [overrides,      setOverridesState]  = useState(getOverrides);
   const [editingNom,     setEditingNom]       = useState(null);
   const [editValues,     setEditValues]       = useState({});
   const [filtreSupplier, setFiltreSupplier]   = useState('');
@@ -47,7 +47,6 @@ export default function MercurialePage() {
   const [recherche,      setRecherche]        = useState('');
 
   // Charge les overrides depuis localStorage
-  useEffect(() => { setOverridesState(getOverrides()); }, []);
 
   // Vue fusionnée (INGREDIENTS_METIER + overrides state — pas de localStorage direct)
   const mergedEntries = useMemo(() => {

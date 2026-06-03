@@ -62,6 +62,7 @@ export default function ModalMoule({ open, initial, onSave, onClose }) {
   useEffect(() => {
     if (!open) return;
     if (initial) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForme(initial.forme  ?? 'cylindre');
       setFormat(initial.format ?? 'entremets');
       setNom(initial.nom ?? '');

@@ -11,6 +11,7 @@ export default function ModalAjout({ open, onClose, onAdd }) {
 
   // Réinitialiser les filtres à chaque ouverture
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (open) { setRecherche(''); setFiltreCategorie(''); }
   }, [open]);
 

@@ -204,14 +204,11 @@ function PillBtn({ active, onClick, children }) {
 function EncartAccords({ parfumId, textureId }) {
   const [open,        setOpen]        = useState(false);
   const [onglet,      setOnglet]      = useState('accords');
-  const [plannifiees, setPlannifiees] = useState([]);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem('pastry-gen-mes-compositions');
-      if (raw) setPlannifiees(JSON.parse(raw));
-    } catch {}
-  }, []);
+  const [plannifiees, setPlannifiees] = useState(() => {
+    if (typeof window === 'undefined') return [];
+    try { const raw = localStorage.getItem('pastry-gen-mes-compositions'); return raw ? JSON.parse(raw) : []; }
+    catch { return []; }
+  });
 
   const handleToggle = useCallback((id) => {
     setPlannifiees(togglePlannifiee(id));
@@ -227,7 +224,7 @@ function EncartAccords({ parfumId, textureId }) {
     <div className="accordion">
       <button className="accordion-trigger" onClick={() => setOpen(o => !o)}>
         <span>
-          Idées d'accords &amp; compositions
+          Idées d&apos;accords &amp; compositions
           {!open && accords.length > 0 && (
             <span style={{ marginLeft: 8, fontSize: 11, color: 'var(--muted)', fontWeight: 400 }}>
               {accords.length} accord{accords.length > 1 ? 's' : ''} · {compos.length} composition{compos.length > 1 ? 's' : ''}
@@ -388,17 +385,16 @@ function EncartAccords({ parfumId, textureId }) {
 
 function EncartCout({ lignes }) {
   const [open, setOpen] = useState(false);
-  const [multRevient, setMultRevient] = useState(2);
-  const [multPvttc,   setMultPvttc]   = useState(5);
-
-  useEffect(() => {
-    try {
-      const r = parseFloat(localStorage.getItem('pastry-gen-mult-revient'));
-      const p = parseFloat(localStorage.getItem('pastry-gen-mult-pvttc'));
-      if (!isNaN(r) && r > 0) setMultRevient(r);
-      if (!isNaN(p) && p > 0) setMultPvttc(p);
-    } catch {}
-  }, []);
+  const [multRevient, setMultRevient] = useState(() => {
+    if (typeof window === 'undefined') return 2;
+    try { const r = parseFloat(localStorage.getItem('pastry-gen-mult-revient')); return !isNaN(r) && r > 0 ? r : 2; }
+    catch { return 2; }
+  });
+  const [multPvttc,   setMultPvttc]   = useState(() => {
+    if (typeof window === 'undefined') return 5;
+    try { const p = parseFloat(localStorage.getItem('pastry-gen-mult-pvttc')); return !isNaN(p) && p > 0 ? p : 5; }
+    catch { return 5; }
+  });
 
   const handleMult = (key, raw) => {
     const n = parseFloat(raw);
@@ -731,11 +727,11 @@ export default function RecipeFiche({ recette }) {
           </table>
         </div>
 
-        {/* Rapport d'équilibre */}
+        {/* Rapport d&apos;équilibre */}
         {rapport && (
           <div className="section">
             <h4>
-              Rapport d'équilibre
+              Rapport d&apos;équilibre
               <span style={{
                 marginLeft: 10, fontSize: 11, fontWeight: 600, padding: '2px 7px',
                 borderRadius: 12,
@@ -802,11 +798,11 @@ export default function RecipeFiche({ recette }) {
           </div>
         )}
 
-        {/* Indicateurs d'équilibre */}
+        {/* Indicateurs d&apos;équilibre */}
         {fourchettes && fourchettes.length > 0 && (
           <div className="section">
             <h4>
-              Indicateurs d'équilibre
+              Indicateurs d&apos;équilibre
               <span style={{
                 marginLeft: 10, fontSize: 11, fontWeight: 600, padding: '2px 7px',
                 borderRadius: 12,
@@ -917,7 +913,7 @@ export default function RecipeFiche({ recette }) {
             par un autre de même fonction. Les pourcentages sont exprimés sur la masse
             totale du produit fini.
             {c.vegan && <><br />Version vegan : gélatine remplacée par pectine NH (amidée), crème par lait de coco, jaunes par lécithine de tournesol.</>}
-            {c.igbas && <><br />Version IG bas : sucre semoule remplacé par sucre de coco. L'inuline de chicorée contribue à abaisser l'IG global.</>}
+            {c.igbas && <><br />Version IG bas : sucre semoule remplacé par sucre de coco. L&apos;inuline de chicorée contribue à abaisser l&apos;IG global.</>}
           </div>
         </div>
 

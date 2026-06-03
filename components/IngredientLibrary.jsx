@@ -121,7 +121,7 @@ export default function IngredientLibrary() {
   return (
     <div className="page-content">
       <div className="page-header">
-        <h1 className="page-title">Bibliothèque d'ingrédients</h1>
+        <h1 className="page-title">Bibliothèque d&apos;ingrédients</h1>
         <p className="page-subtitle">{loading ? 'Chargement…' : `${ingredients.length} ingrédients · données CIQUAL / Bordas`}</p>
       </div>
 

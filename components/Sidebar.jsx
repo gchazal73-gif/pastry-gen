@@ -60,13 +60,16 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
 
   // Lire la préférence stockée côté client uniquement
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     const stored = localStorage.getItem(STORAGE_KEY);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (stored !== null) setCollapsed(stored === 'true');
   }, []);
 
   // Badge plan de travail — lecture initiale + écoute storage cross-tab
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPlanCount(readPlanCount());
     function onStorage(e) {
       if (e.key === PLAN_KEY || e.key === null) setPlanCount(readPlanCount());

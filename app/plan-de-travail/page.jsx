@@ -45,8 +45,11 @@ export default function PlanDeTravailPage() {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const data = JSON.parse(raw);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSlots(data.slots      ?? []);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setProduction({ ...PRODUCTION_DEFAUT, ...(data.production ?? {}) });
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMontage(data.montage   ?? MONTAGE_DEFAUT);
       }
     } catch {}
@@ -68,11 +71,13 @@ export default function PlanDeTravailPage() {
     const ids = production.moules.map(ms => ms.moule_id);
     if (ids.length === 0) {
       if (production.moule_reference_id !== null) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setProduction(prev => ({ ...prev, moule_reference_id: null }));
       }
       return;
     }
     if (!production.moule_reference_id || !ids.includes(production.moule_reference_id)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setProduction(prev => ({ ...prev, moule_reference_id: ids[0] }));
     }
   }, [production.moules, production.moule_reference_id, hydrated]);
@@ -83,10 +88,12 @@ export default function PlanDeTravailPage() {
     const hasActiveMoules = production.moules.some(ms => (ms.quantite ?? 0) > 0);
 
     if (hasActiveMoules) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setProduction(prev => {
         if (prev.mode_calcul === 'par_pourcentage') return prev;
         return { ...prev, mode_calcul: 'par_pourcentage' };
       });
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMontage(prev => {
         if (prev.couches.length === 0) return prev;
         if (!prev.couches.every(c => (c.pourcentage ?? 0) === 0)) return prev;

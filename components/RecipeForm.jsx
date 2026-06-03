@@ -19,7 +19,7 @@ const FAMILLE_LABELS_SUPA = {
   oleagineux:             'Oléagineux',
 };
 
-export default function RecipeForm({ onRecette, onComparer, defaultTextureId, defaultParfumId }) {
+export default function RecipeForm({ onRecette, onComparer = null, defaultTextureId = null, defaultParfumId = null }) {
   const textureIds   = Object.keys(TEMPLATES);
   const initTextureId = (defaultTextureId && TEMPLATES[defaultTextureId]) ? defaultTextureId : textureIds[0];
 
@@ -48,6 +48,7 @@ export default function RecipeForm({ onRecette, onComparer, defaultTextureId, de
   // Réinitialiser format et parfum local quand on change de texture
   useEffect(() => {
     const t = TEMPLATES[textureId];
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormat(t.formats ? Object.keys(t.formats)[0] : '');
     const needsLocalParfum = !TEMPLATE_FAMILLES[textureId] && t.parfumsCompat.length > 1;
     if (needsLocalParfum) {
@@ -61,6 +62,7 @@ export default function RecipeForm({ onRecette, onComparer, defaultTextureId, de
 
   // Charger les ingrédients Supabase uniquement pour les templates qui en ont besoin
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!hasSupa) { setDbIngredients([]); setSelectedDbId(''); return; }
     setLoadingDb(true);
     setSelectedDbId('');

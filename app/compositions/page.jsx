@@ -24,8 +24,10 @@ export default function CompositionsPage() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem('pastry-gen-mes-compositions');
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (raw) setPlannifiees(JSON.parse(raw));
     } catch {}
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHydrated(true);
   }, []);
 

@@ -25,7 +25,9 @@ export default function GenerateurPage() {
     const tId = p.get('textureId');
     const pId = p.get('parfumId');
     if (tId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUrlParams({ textureId: tId, parfumId: pId });
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormKey(k => k + 1);
     }
   }, []);

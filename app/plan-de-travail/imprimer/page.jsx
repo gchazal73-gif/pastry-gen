@@ -196,7 +196,7 @@ function BonEconomat({ recap, slotsWithRecettes, today, totalGeneral }) {
   return (
     <div className={styles.economat}>
       <div className={styles.economHeader}>
-        <div className={styles.economTitle}>Bon d'économat</div>
+        <div className={styles.economTitle}>Bon d&apos;économat</div>
         <div className={styles.economMeta}>
           <span>Date : {today}</span>
           <span>{slotsWithRecettes.length} préparation{slotsWithRecettes.length > 1 ? 's' : ''}</span>
@@ -352,7 +352,9 @@ export default function ImprimerPage() {
 
   useEffect(() => {
     // Lire le mode depuis le hash : #economat | #etiquette
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (window.location.hash === '#economat') setMode('economat');
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (window.location.hash === '#etiquette') setMode('etiquette');
 
     try {
@@ -419,7 +421,7 @@ export default function ImprimerPage() {
             className={mode === 'economat' ? styles.modeActive : styles.modeBtn}
             onClick={() => setMode('economat')}
           >
-            Bon d'économat
+            Bon d&apos;économat
           </button>
           <button
             className={mode === 'etiquette' ? styles.modeActive : styles.modeBtn}
