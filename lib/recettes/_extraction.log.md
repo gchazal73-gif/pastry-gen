@@ -253,5 +253,33 @@ Entrées pré-existantes (non recréées) : genoise-eb, dacquoise-amandes-eb, da
 | omelette-norvegienne-citron-eb | Benghanem | 121 | Omelette norvégienne citron | ø 18 cm × h 12 cm | ✓ validé |
 
 **Total Benghanem Batch 4 : 8 nouvelles entrées**
+
+---
+
+## 2026-06-03 — Benghanem — Batch 5 : FEUILLETÉES & LEVÉES (pp. 130–145)
+
+Entrées pré-existantes (non recréées) : feuilletage-classique/inverse/rapide-eb, pate-brioche-eb, pate-a-baba-eb, pate-croissants-eb
+
+### Pâtes de base (pates.js) — 2 entrées
+
+| ID recette | PDF | Page | Titre original | Statut |
+|---|---|---|---|---|
+| pate-savarin-eb | Benghanem | 141 | Pâte à savarin | ✓ validé |
+| pate-pain-de-mie-eb | Benghanem | 144 | Pâte à pain de mie | ✓ validé |
+
+### Assemblages (assemblages.js) — 7 entrées
+
+| ID recette | PDF | Page | Titre original | Moule | Statut |
+|---|---|---|---|---|---|
+| millefeuille-vanille-eb | Benghanem | 130 | Millefeuille à la vanille | bandes 15×2 cm | ✓ validé |
+| kouglof-eb | Benghanem | 133 | Kouglof | moule à kouglof | ✓ validé |
+| brioche-tropezienne-eb | Benghanem | 134 | Brioche tropézienne | 30 moules brioches | ✓ validé |
+| bostock-eb | Benghanem | 135 | Bostock | 30 moules brioches | ✓ validé |
+| croissants-amandes-eb | Benghanem | 139 | Croissants aux amandes | plaque | ✓ validé |
+| baba-nature-eb | Benghanem | 142 | Baba nature | demi-sphères ø 8 cm | ⚠ a_verifier |
+| savarin-pina-colada-eb | Benghanem | 143 | Savarin façon Piña colada | anneau ø 22 cm | ✓ validé |
+
+**Total Benghanem Batch 5 : 9 nouvelles entrées**
+Nutrition : gingembre frais (CIQUAL) + aliases beurre noisette, fleur d'oranger, citronnelle, Malibu, ananas…
 Nutrition : +1 entrée CIQUAL (miel) + ~30 nouveaux aliases (farine de seigle, huile de noisettes, sirop d'érable, fruits confits, thé, trimoline…)
 Nutrition : +3 entrées CIQUAL (beurre de cacao, purée de citron, abricots secs) + ~45 nouveaux aliases (Farine T55, sucre glace, chocolats 70%, pommes, etc.)
