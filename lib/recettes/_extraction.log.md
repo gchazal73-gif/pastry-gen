@@ -227,5 +227,31 @@ Source : **Le Grand Cours de Pâtisserie — L'essentiel de la pâtisserie**, Ed
 **Note B3 :** pate-a-choux-eb et saint-honore-eb déjà présents (extractions antérieures). 4 doublons B1 supprimés de pates.js (pate-brisee-noisette-eb, pate-sucree-eb, sable-breton-eb, pate-linzer-eb).
 
 **Total Benghanem Batch 3 : 13 nouvelles entrées**
+
+---
+
+## 2026-06-03 — Benghanem — Batch 4 : PÂTES À BISCUITS (pp. 100–121)
+
+Entrées pré-existantes (non recréées) : genoise-eb, dacquoise-amandes-eb, dacquoise-noisettes-eb, biscuit-cuillere-eb, biscuit-chocolat-sf-eb, biscuit-joconde-eb, charlotte-chocolat-eb, opera-eb, opera-pistache-framboise-eb
+
+### Biscuits standalone (biscuits.js) — 3 entrées
+
+| ID recette | PDF | Page | Titre original | Statut |
+|---|---|---|---|---|
+| biscuits-de-reims-eb | Benghanem | 100 | Biscuits de Reims | ✓ validé |
+| dacquoise-croustillante-praline-eb | Benghanem | 109 | Dacquoises croustillantes au praliné | ✓ validé |
+| biscuit-pate-choux-eb | Benghanem | 114 | Biscuit pâte à choux | ✓ validé |
+
+### Assemblages (assemblages.js) — 5 entrées
+
+| ID recette | PDF | Page | Titre original | Moule | Statut |
+|---|---|---|---|---|---|
+| tiramisu-caramel-cafe-eb | Benghanem | 103 | Tiramisu minute caramel-café | verrines | ✓ validé |
+| fraisier-noisette-choc-blanc-eb | Benghanem | 110 | Fraisier noisette–chocolat blanc | cadre 20×20 | ✓ validé |
+| tarte-fondante-chocolat-eb | Benghanem | 112 | Tarte fondante au chocolat | 27×9 cm | ✓ validé |
+| chocolat-framboise-eb | Benghanem | 113 | Chocolat framboise | bandes plaque | ✓ validé |
+| omelette-norvegienne-citron-eb | Benghanem | 121 | Omelette norvégienne citron | ø 18 cm × h 12 cm | ✓ validé |
+
+**Total Benghanem Batch 4 : 8 nouvelles entrées**
 Nutrition : +1 entrée CIQUAL (miel) + ~30 nouveaux aliases (farine de seigle, huile de noisettes, sirop d'érable, fruits confits, thé, trimoline…)
 Nutrition : +3 entrées CIQUAL (beurre de cacao, purée de citron, abricots secs) + ~45 nouveaux aliases (Farine T55, sucre glace, chocolats 70%, pommes, etc.)
