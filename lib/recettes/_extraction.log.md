@@ -157,4 +157,39 @@ Source : **Le Grand Cours de Pâtisserie — L'essentiel de la pâtisserie**, Ed
 | crumble-pommes-eb | Benghanem | 40 | Crumble aux pommes | ø 8 cm indiv. | ✓ validé |
 
 **Total Benghanem Batch 1 : 24 nouvelles entrées**
+
+---
+
+## 2026-06-03 — Benghanem — Batch 2 : LES PÂTES À CAKES (pp. 54–79)
+
+### Cakes / Brownies / Muffins / Scones (biscuits.js) — 12 entrées
+
+| ID recette | PDF | Page | Titre original | Statut |
+|---|---|---|---|---|
+| cake-citron-eb | Benghanem | 54 | Cake au citron | ✓ validé |
+| cake-marbre-eb | Benghanem | 54 | Cake marbré chocolat vanille | ✓ validé |
+| cake-huile-olive-eb | Benghanem | 56 | Cake à l'huile d'olive | ✓ validé |
+| cake-pain-epices-eb | Benghanem | 56 | Cake pain d'épices | ✓ validé |
+| cake-fruits-confits-base-eb | Benghanem | 56 | Cake aux fruits confits | ✓ validé |
+| cake-tout-chocolat-eb | Benghanem | 56 | Cake tout chocolat | ✓ validé |
+| cake-citron-the-eb | Benghanem | 57 | Cake au citron et au thé Earl Grey | ✓ validé |
+| cake-sucre-brun-eb | Benghanem | 66 | Cake au sucre brun (base) | ✓ validé |
+| pain-de-genes-eb | Benghanem | 69 | Pain de Gênes | ✓ validé |
+| brownie-eb | Benghanem | 74 | Brownie au chocolat | ✓ validé |
+| muffins-nature-eb | Benghanem | 76 | Muffins nature | ✓ validé |
+| scones-eb | Benghanem | 78 | Scones | ⚠ 40cl crème fraîche corrigé en 40g |
+
+### Assemblages (assemblages.js) — 6 entrées
+
+| ID recette | PDF | Page | Titre original | Moule | Statut |
+|---|---|---|---|---|---|
+| cake-pims-citron-eb | Benghanem | 58 | Cake au citron façon Pim's | ø 12cm ×h 4cm | ✓ validé |
+| cake-fruits-eb | Benghanem | 60 | Cake aux fruits | 27×9cm | ✓ validé |
+| nonnettes-eb | Benghanem | 72 | Nonnettes | 60 moules indiv. | ⚠ à vérifier (nutrition confits approx.) |
+| brownie-ganache-lait-eb | Benghanem | 74 | Brownie ganache chocolat au lait | ovales 13×5cm | ✓ validé |
+| scones-beurre-confiture-eb | Benghanem | 78 | Scones beurre-confiture | ø 6cm | ✓ validé |
+| layer-scone-eb | Benghanem | 79 | Layer scone | 5 cercles ø18cm | ✓ validé |
+
+**Total Benghanem Batch 2 : 18 nouvelles entrées**
+Nutrition : +1 entrée CIQUAL (miel) + ~30 nouveaux aliases (farine de seigle, huile de noisettes, sirop d'érable, fruits confits, thé, trimoline…)
 Nutrition : +3 entrées CIQUAL (beurre de cacao, purée de citron, abricots secs) + ~45 nouveaux aliases (Farine T55, sucre glace, chocolats 70%, pommes, etc.)
