@@ -4,10 +4,22 @@ import { useState, useEffect, useMemo } from 'react';
 import { fetchIngredients } from '@/lib/ingredient-store.js';
 
 const FAMILLE_LABELS = {
-  fruits_frais:           'Fruits frais',
-  purees_fruits:          'Purées',
+  aromates_epices:        'Aromates & Épices',
+  Chocolats:              'Chocolats',
   chocolats_couvertures:  'Chocolats',
+  emulsifiants:           'Émulsifiants',
+  farines_amidons:        'Farines & Amidons',
+  Fruits_frais:           'Fruits frais',
+  fruits_frais:           'Fruits frais',
+  gelifiants:             'Gélifiants',
+  matieres_grasses:       'Matières grasses',
+  oeufs:                  'Œufs',
+  Oleagineux:             'Oléagineux',
   oleagineux:             'Oléagineux',
+  produits_laitiers:      'Produits laitiers',
+  Purees:                 'Purées',
+  purees_fruits:          'Purées',
+  sucres:                 'Sucres',
 };
 
 function MacroChip({ label, value, unit }) {

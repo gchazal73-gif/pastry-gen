@@ -2,18 +2,24 @@ import { useMemo } from 'react';
 import styles from '../../app/plan-de-travail/plan.module.css';
 
 function accumIngredients(recette, masse, totaux) {
+  if (!Number.isFinite(masse) || masse <= 0) return;
   if (recette.type === 'assemblage') {
-    const ratio = masse / recette.masse_totale_g;
-    recette.composants.forEach(comp => {
-      const compMasse = comp.masse_g * ratio;
-      comp.ingredients.forEach(ing => {
-        const g = Math.round(ing.pct / 100 * compMasse);
+    const refMasse = Number(recette.masse_totale_g);
+    if (!Number.isFinite(refMasse) || refMasse <= 0) return;
+    const ratio = masse / refMasse;
+    recette.composants?.forEach(comp => {
+      const compMasse = Number(comp.masse_g) * ratio;
+      if (!Number.isFinite(compMasse)) return;
+      comp.ingredients?.forEach(ing => {
+        const g = Math.round(Number(ing.pct) / 100 * compMasse);
+        if (!Number.isFinite(g)) return;
         totaux[ing.nom] = (totaux[ing.nom] ?? 0) + g;
       });
     });
   } else {
-    recette.ingredients.forEach(ing => {
-      const g = Math.round(ing.pct / 100 * masse);
+    recette.ingredients?.forEach(ing => {
+      const g = Math.round(Number(ing.pct) / 100 * masse);
+      if (!Number.isFinite(g)) return;
       totaux[ing.nom] = (totaux[ing.nom] ?? 0) + g;
     });
   }
@@ -25,13 +31,15 @@ export default function RecapMatieres({ slots, recettesMap }) {
     slots.forEach(slot => {
       const recette = recettesMap[slot.recetteId];
       if (!recette) return;
-      const masse = Number(slot.masse) > 0 ? Number(slot.masse) : recette.masse_totale_g;
+      const slotMasse = Number(slot.masse);
+      const defaultMasse = Number(recette.masse_totale_g);
+      const masse = slotMasse > 0 ? slotMasse : (defaultMasse > 0 ? defaultMasse : 0);
       accumIngredients(recette, masse, totaux);
     });
     return Object.entries(totaux).sort((a, b) => b[1] - a[1]);
   }, [slots, recettesMap]);
 
-  const totalGeneral = recap.reduce((sum, [, g]) => sum + g, 0);
+  const totalGeneral = recap.reduce((sum, [, g]) => sum + (Number.isFinite(g) ? g : 0), 0);
 
   return (
     <div className={styles.recap}>
@@ -53,7 +61,7 @@ export default function RecapMatieres({ slots, recettesMap }) {
               {recap.map(([nom, g]) => (
                 <tr key={nom}>
                   <td>{nom}</td>
-                  <td className="qty">{g} g</td>
+                  <td className="qty">{Number.isFinite(g) ? `${g} g` : '—'}</td>
                 </tr>
               ))}
             </tbody>

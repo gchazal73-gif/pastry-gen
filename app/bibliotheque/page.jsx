@@ -21,7 +21,7 @@ export default function BibliothequePage() {
   const [filtreSousCat,      setFiltreSousCat]       = useState('');
   const [filtresContraintes, setFiltresContraintes]  = useState([]);
   const [recherche,          setRecherche]           = useState('');
-  const [tri,                setTri]                 = useState('');
+  const [tri,                setTri]                 = useState('nom');
   const [filtreIngredient,   setFiltreIngredient]    = useState('');
   const [favoris,            setFavoris]             = useState(getFavoris);
   const [filtreFavoris,      setFiltreFavoris]       = useState(false);
@@ -30,6 +30,17 @@ export default function BibliothequePage() {
   const [toast,              setToast]               = useState(false);
   const toastTimer = useRef(null);
 
+  // Restaurer le tri depuis localStorage au montage
+  useEffect(() => {
+    const stored = localStorage.getItem('bibliotheque-sort');
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (stored) setTri(stored);
+  }, []);
+
+  // Persister le tri à chaque changement
+  useEffect(() => {
+    localStorage.setItem('bibliotheque-sort', tri);
+  }, [tri]);
 
   const tousLesIngredients = useMemo(() => {
     const set = new Set();
@@ -74,6 +85,8 @@ export default function BibliothequePage() {
       });
     }
     if (tri === 'nom')      r = [...r].sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
+    if (tri === 'famille')  r = [...r].sort((a, b) => (a.famille ?? '').localeCompare(b.famille ?? '', 'fr') || a.nom.localeCompare(b.nom, 'fr'));
+    if (tri === 'valide')   r = [...r].sort((a, b) => (a.a_verifier ? 1 : 0) - (b.a_verifier ? 1 : 0) || a.nom.localeCompare(b.nom, 'fr'));
     if (tri === 'masse')    r = [...r].sort((a, b) => (a.masse_totale_g ?? 0) - (b.masse_totale_g ?? 0));
     if (tri === 'calories') {
       const cache = new Map();

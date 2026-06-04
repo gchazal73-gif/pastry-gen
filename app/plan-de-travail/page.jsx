@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Plus, Trash2, FileText, ShoppingCart } from 'lucide-react';
 import { RECETTES }             from '../../lib/recettes/index.js';
+import { getRecettesGenerees }  from '../../lib/recettes-generees-store.js';
 import { MOULES_PRESETS }       from '../../lib/moules.js';
 import { computeProductionPlan, normalizePercentages } from '../../lib/production.js';
 import { computePlanNutrition } from '../../lib/nutrition.js';
@@ -32,13 +33,14 @@ const PRODUCTION_DEFAUT = {
 const MONTAGE_DEFAUT = { couches: [] };
 
 export default function PlanDeTravailPage() {
-  const [slots,      setSlots]      = useState([]);
-  const [production, setProduction] = useState(PRODUCTION_DEFAUT);
-  const [montage,    setMontage]    = useState(MONTAGE_DEFAUT);
-  const [userMoules, setUserMoules] = useState([]);
-  const [modalOpen,  setModalOpen]  = useState(false);
-  const [hydrated,   setHydrated]   = useState(false);
-  const [profilAJR,  setProfilAJR]  = useState('adulte_2000kcal');
+  const [slots,            setSlots]            = useState([]);
+  const [production,       setProduction]       = useState(PRODUCTION_DEFAUT);
+  const [montage,          setMontage]          = useState(MONTAGE_DEFAUT);
+  const [userMoules,       setUserMoules]       = useState([]);
+  const [modalOpen,        setModalOpen]        = useState(false);
+  const [hydrated,         setHydrated]         = useState(false);
+  const [profilAJR,        setProfilAJR]        = useState('adulte_2000kcal');
+  const [recettesGenerees, setRecettesGenerees] = useState([]);
 
   useEffect(() => {
     try {
@@ -57,6 +59,8 @@ export default function PlanDeTravailPage() {
       const rawMoules = localStorage.getItem(STORAGE_KEY_MOULES);
       if (rawMoules) setUserMoules(JSON.parse(rawMoules));
     } catch {}
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setRecettesGenerees(getRecettesGenerees());
     setHydrated(true);
   }, []);
 
@@ -111,8 +115,9 @@ export default function PlanDeTravailPage() {
   const recettesMap = useMemo(() => {
     const map = {};
     RECETTES.forEach(r => { map[r.id] = r; });
+    recettesGenerees.forEach(r => { map[r.id] = r; });
     return map;
-  }, []);
+  }, [recettesGenerees]);
 
   const allMoules = useMemo(() => [
     ...MOULES_PRESETS.map(m => ({ ...m, _preset: true })),
@@ -171,7 +176,7 @@ export default function PlanDeTravailPage() {
 
   const addSlot = useCallback((recette) => {
     const uid = genUid();
-    setSlots(prev => [...prev, { uid, recetteId: recette.id, masse: recette.masse_totale_g }]);
+    setSlots(prev => [...prev, { uid, recetteId: recette.id, masse: recette.masse_totale_g ?? '' }]);
     setMontage(prev => ({
       ...prev,
       couches: [...prev.couches, {

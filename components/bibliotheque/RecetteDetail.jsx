@@ -145,7 +145,12 @@ export default function RecetteDetail({ recette, masse, setMasse, onClose }) {
 
       {recette.a_verifier && (
         <div style={{ marginBottom: 12 }}>
-          <span className="badge warn">⚠ À vérifier</span>
+          <span
+            className="badge warn"
+            title="Cette recette n'a pas encore été testée et validée en production."
+          >
+            ⚠ Non validée
+          </span>
         </div>
       )}
 

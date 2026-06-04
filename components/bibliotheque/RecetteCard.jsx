@@ -53,7 +53,12 @@ export default function RecetteCard({ recette, selected, onSelect, onAddToPlan, 
               <span key={key} className={styles.cardBadge}>{label}</span>
             ))}
           {recette.a_verifier && (
-            <span className={styles.cardBadgeWarn}>⚠ À vérifier</span>
+            <span
+              className={styles.cardBadgeWarn}
+              title="Cette recette n'a pas encore été testée et validée en production."
+            >
+              ⚠ Non validée
+            </span>
           )}
         </div>
         {onAddToPlan && (

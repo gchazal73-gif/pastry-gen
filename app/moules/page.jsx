@@ -176,10 +176,14 @@ function MouleCard({ moule, onEdit, onDelete, formatLabels }) {
   const vol    = Math.round(computeMoldVolume(moule));
   const dimStr = getDimStr(moule);
 
+  const isIndividuel = moule.est_individuel || moule.format === 'individuel';
+  const portions     = isIndividuel ? 1 : Math.max(1, Math.floor(vol / 120));
+  const portionsLabel = portions === 1 ? '1 portion' : `~${portions} portions`;
+
   return (
     <div className={`${styles.card}${moule._preset ? '' : ` ${styles.cardUser}`}`}>
       <div className={styles.cardShape}>
-        <ShapeIcon forme={moule.forme} />
+        <ShapeIcon moule={moule} />
       </div>
       <div>
         <div className={styles.cardNom}>{moule.nom}</div>
@@ -187,6 +191,7 @@ function MouleCard({ moule, onEdit, onDelete, formatLabels }) {
         {moule.notes && <div className={styles.cardNotes}>{moule.notes}</div>}
         <div className={styles.cardFooter}>
           <span className={styles.cardVol}>{vol} mL</span>
+          <span className={styles.cardPortions}>{portionsLabel}</span>
           {moule.format && moule.format !== 'entremets' && (
             <span className={styles.cardBadge}>{formatLabels[moule.format] ?? moule.format}</span>
           )}
@@ -215,49 +220,52 @@ function MouleCard({ moule, onEdit, onDelete, formatLabels }) {
   );
 }
 
-const SVG_PROPS = {
-  width: 40, height: 40, viewBox: '0 0 40 40', fill: 'none',
+const SVG_BASE = {
+  viewBox: '0 0 40 40', fill: 'none',
   stroke: 'currentColor', strokeWidth: '1.5',
   strokeLinecap: 'round', strokeLinejoin: 'round',
   'aria-hidden': true,
 };
+const SVG_PROPS    = { ...SVG_BASE, width: 40, height: 40 };
+const SVG_PROPS_SM = { ...SVG_BASE, width: 28, height: 28 };
 
-function ShapeIcon({ forme }) {
-  if (forme === 'cylindre') return (
-    <svg {...SVG_PROPS}>
-      {/* top ellipse */}
-      <ellipse cx="20" cy="12" rx="12" ry="4" />
-      {/* sides + curved base */}
-      <path d="M8 12v17c0 3 5.4 5 12 5s12-2 12-5V12" />
-    </svg>
-  );
+function ShapeIcon({ moule }) {
+  const { forme, dimensions: d, est_individuel } = moule;
+  const svgP = est_individuel ? SVG_PROPS_SM : SVG_PROPS;
+
+  if (forme === 'cylindre') {
+    // Cylindre proportionnel : hauteur/diamètre → hauteur visuelle dans le SVG
+    const ratio = Math.max(0.1, Math.min(2.0, (d?.hauteur_cm ?? 5) / (d?.diametre_cm ?? 20)));
+    const t     = Math.max(0, Math.min(1, (ratio - 0.15) / 1.35));
+    const sideH = Math.round(4 + t * 18); // 4 (très plat) → 22 (très haut)
+    const cy    = 30 - sideH;             // centre ellipse supérieure
+    return (
+      <svg {...svgP}>
+        <ellipse cx="20" cy={cy} rx="12" ry="4" />
+        <path d={`M8 ${cy}v${sideH}c0 3 5.4 5 12 5s12-2 12-5V${cy}`} />
+      </svg>
+    );
+  }
 
   if (forme === 'parallelepipede') return (
-    <svg {...SVG_PROPS}>
-      {/* front face */}
+    <svg {...svgP}>
       <rect x="5" y="19" width="21" height="16" rx="1" />
-      {/* top face (perspective) */}
       <path d="M5 19l8-9h22l-8 9z" />
-      {/* right face (perspective) */}
       <path d="M26 19l8-9v16l-8 9" />
     </svg>
   );
 
   if (forme === 'demi_sphere') return (
-    <svg {...SVG_PROPS}>
-      {/* dome arc */}
+    <svg {...svgP}>
       <path d="M8 26a12 12 0 0 1 24 0" />
-      {/* base ellipse */}
       <ellipse cx="20" cy="26" rx="12" ry="3.5" />
     </svg>
   );
 
-  /* volume_custom — moule silicone ondulé */
+  /* volume_custom — moule silicone */
   return (
-    <svg {...SVG_PROPS}>
-      {/* wavy opening */}
+    <svg {...svgP}>
       <path d="M8 19 C11 13 14 13 17 19 C20 25 23 25 26 19 C29 13 32 13 32 19" />
-      {/* body sides + base */}
       <path d="M8 19 L8 31 Q8 33 10 33 L30 33 Q32 33 32 31 L32 19" />
     </svg>
   );

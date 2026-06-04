@@ -10,10 +10,11 @@ const CONTRAINTES = [
 ];
 
 const TRI_OPTIONS = [
-  { value: '',         label: 'Par défaut' },
-  { value: 'nom',      label: 'Nom A→Z'   },
-  { value: 'calories', label: 'Calories ↑' },
-  { value: 'masse',    label: 'Masse ↑'   },
+  { value: 'nom',      label: 'Alphabétique A→Z'     },
+  { value: 'famille',  label: 'Par famille'           },
+  { value: 'valide',   label: 'Validées en premier'   },
+  { value: 'calories', label: 'Calories ↑'            },
+  { value: 'masse',    label: 'Masse ↑'               },
 ];
 
 function buildFamilleStats() {
@@ -64,7 +65,7 @@ export default function FilterPanel({
   }
 
   const hasFilters = filtreFamille || filtreSousCat || filtresContraintes.length > 0
-    || recherche.trim() || tri || filtreIngredient.trim() || filtreFavoris;
+    || recherche.trim() || (tri && tri !== 'nom') || filtreIngredient.trim() || filtreFavoris;
 
   return (
     <aside className={styles.filterPanel}>
@@ -208,7 +209,7 @@ export default function FilterPanel({
             setFiltreSousCat('');
             setFiltresContraintes([]);
             setRecherche('');
-            setTri('');
+            setTri('nom');
             setFiltreIngredient('');
             setFiltreFavoris(false);
           }}

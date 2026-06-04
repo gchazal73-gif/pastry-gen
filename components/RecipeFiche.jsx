@@ -86,7 +86,49 @@ function BalanceJournal({ journal, warnings }) {
   );
 }
 
-function IndicateurRow({ label, valeur, unite, min, max, statut }) {
+// ── Utilitaires partagés ─────────────────────────────────────────────────────
+
+function RangeBar({ pct, color }) {
+  return (
+    <div style={{ position: 'relative', height: 4, background: 'var(--line)', borderRadius: 2 }}>
+      <div style={{
+        position: 'absolute', top: '50%', left: `${pct}%`,
+        transform: 'translate(-50%, -50%)',
+        width: 8, height: 8, borderRadius: '50%',
+        background: color,
+        border: '2px solid var(--card)',
+        boxShadow: `0 0 0 1.5px ${color}`,
+      }} />
+    </div>
+  );
+}
+
+const ACTIONS_V2 = {
+  eau:     { bas: v => `Eau totale trop faible (${v}%) — augmenter la phase aqueuse (lait, purée de fruit, eau).`,     haut: v => `Eau totale trop élevée (${v}%) — réduire la phase aqueuse ou augmenter l'extrait sec.` },
+  sucres:  { bas: v => `Sucres insuffisants (${v}%) — augmenter le saccharose ou ajouter du dextrose.`,                haut: v => `Sucres excessifs (${v}%) — substituer par glucose atomisé DE38 (sans pouvoir sucrant).` },
+  lipides: { bas: v => `Matière grasse insuffisante (${v}%) — augmenter la crème ou le beurre.`,                       haut: v => `Matière grasse excessive (${v}%) — réduire la crème ou le beurre.` },
+  pod:     { bas: v => `POD trop faible (${v}) — ajouter trimoline, miel ou dextrose (pouvoir sucrant élevé).`,        haut: v => `POD trop élevé (${v}) — remplacer une partie du saccharose par glucose DE38 (POD 50).` },
+  pac:     { bas: v => `PAC trop faible (${v}) — ajouter dextrose ou sucre inverti (PAC 190) pour assouplir.`,         haut: v => `PAC trop élevé (${v}) — réduire les monosaccharides.` },
+};
+
+function badgeV2(equilibre) {
+  const n = Object.values(equilibre).filter(e => !e.ok).length;
+  return n === 0 ? { bg: '#e3efe6', color: 'var(--ok)',   label: '✓ Équilibré'    }
+       : n <= 2  ? { bg: '#fce8d4', color: 'var(--warn)', label: '⚠ À ajuster'    }
+                 : { bg: '#fde8e8', color: 'var(--bad)',  label: '✗ Déséquilibré' };
+}
+
+function badgeV3(fourchettes) {
+  const nb    = fourchettes.filter(f => f.statut === 'hors').length;
+  const allOk = fourchettes.every(f => f.statut === 'ok' || f.statut === 'inconnu');
+  return allOk  ? { bg: '#e3efe6', color: 'var(--ok)',   label: '✓ Équilibré'    }
+       : nb >= 3 ? { bg: '#fde8e8', color: 'var(--bad)',  label: '✗ Déséquilibré' }
+                 : { bg: '#fce8d4', color: 'var(--warn)', label: '⚠ À ajuster'    };
+}
+
+// ── Composants de ligne ───────────────────────────────────────────────────────
+
+function IndicateurRow({ label, valeur, unite, min, max, statut, conseil, conseil_chiffre }) {
   const COLOR  = { ok: 'var(--ok)', attention: 'var(--warn)', hors: 'var(--bad)', inconnu: 'var(--muted)' };
   const SYMBOL = { ok: '✓', attention: '⚠', hors: '✗', inconnu: '?' };
   const color  = COLOR[statut]  ?? 'var(--muted)';
@@ -94,27 +136,45 @@ function IndicateurRow({ label, valeur, unite, min, max, statut }) {
   const pct = valeur != null
     ? Math.min(100, Math.max(0, ((valeur - min) / (max - min)) * 100))
     : 0;
+  const hasMsg = conseil || conseil_chiffre;
   return (
-    <tr>
-      <td style={{ fontSize: 12, paddingRight: 8 }}>
-        <span style={{ color, fontWeight: 700, marginRight: 6, fontSize: 11 }}>{symbol}</span>
-        <span style={{ color: 'var(--muted)' }}>{label}</span>
-      </td>
-      <td style={{ fontSize: 13, fontVariantNumeric: 'tabular-nums', textAlign: 'right', paddingRight: 8, color }}>
-        {valeur != null ? valeur.toFixed(valeur < 10 ? 2 : 1) : '—'}{unite}
-      </td>
-      <td style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'right', whiteSpace: 'nowrap' }}>
-        [{min} – {max}]{unite}
-      </td>
-      <td style={{ paddingLeft: 12, width: 80 }}>
-        <div style={{ position: 'relative', height: 6, background: 'var(--line)', borderRadius: 3 }}>
-          <div style={{
-            position: 'absolute', left: 0, top: 0, height: '100%', borderRadius: 3,
-            width: `${pct}%`, background: color,
-          }} />
-        </div>
-      </td>
-    </tr>
+    <>
+      <tr>
+        <td style={{ fontSize: 12, paddingRight: 8 }}>
+          <span style={{ color, fontWeight: 700, marginRight: 6, fontSize: 11 }}>{symbol}</span>
+          <span style={{ color: 'var(--muted)' }}>{label}</span>
+        </td>
+        <td style={{ fontSize: 13, fontVariantNumeric: 'tabular-nums', textAlign: 'right', paddingRight: 8, color }}>
+          {valeur != null ? valeur.toFixed(valeur < 10 ? 2 : 1) : '—'}{unite}
+        </td>
+        <td style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'right', whiteSpace: 'nowrap' }}>
+          [{min} – {max}]{unite}
+        </td>
+        <td style={{ paddingLeft: 12, width: 80 }}>
+          <RangeBar pct={pct} color={color} />
+        </td>
+      </tr>
+      {hasMsg && (
+        <tr>
+          <td colSpan={4} style={{ paddingBottom: 8, paddingLeft: 18 }}>
+            {conseil && (
+              <div style={{ fontSize: 11, color: statut === 'hors' ? 'var(--bad)' : 'var(--warn)' }}>
+                ↳ {conseil}
+              </div>
+            )}
+            {conseil_chiffre && (
+              <div style={{
+                fontFamily: 'monospace', background: 'var(--bg)', borderRadius: 4,
+                padding: '3px 8px', fontSize: 11, marginTop: conseil ? 4 : 0,
+                display: 'inline-block',
+              }}>
+                → {conseil_chiffre.description}
+              </div>
+            )}
+          </td>
+        </tr>
+      )}
+    </>
   );
 }
 
@@ -151,29 +211,35 @@ function GlaceJournal({ journal, warnings = [] }) {
   );
 }
 
-function EquilibreRow({ label, valeur, min, max, ok }) {
-  const pct = Math.min(100, Math.max(0, ((valeur - min) / (max - min)) * 100));
+function EquilibreRow({ label, valeur, min, max, ok, paramKey }) {
+  const pct   = Math.min(100, Math.max(0, ((valeur - min) / (max - min)) * 100));
+  const color = ok ? 'var(--ok)' : 'var(--bad)';
+  const dir   = valeur < min ? 'bas' : 'haut';
+  const msg   = !ok ? ACTIONS_V2[paramKey]?.[dir]?.(valeur) : null;
   return (
-    <tr>
-      <td style={{ fontSize: 12, color: 'var(--muted)', paddingRight: 8 }}>
-        <StatusDot ok={ok} />{label}
-      </td>
-      <td style={{ fontSize: 13, fontVariantNumeric: 'tabular-nums', textAlign: 'right', paddingRight: 8 }}>
-        {valeur}
-      </td>
-      <td style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'right', whiteSpace: 'nowrap' }}>
-        [{min} – {max}]
-      </td>
-      <td style={{ paddingLeft: 12, width: 80 }}>
-        <div style={{ position: 'relative', height: 6, background: 'var(--line)', borderRadius: 3 }}>
-          <div style={{
-            position: 'absolute', left: 0, top: 0, height: '100%', borderRadius: 3,
-            width: `${pct}%`,
-            background: ok ? 'var(--ok)' : 'var(--bad)',
-          }} />
-        </div>
-      </td>
-    </tr>
+    <>
+      <tr>
+        <td style={{ fontSize: 12, color: 'var(--muted)', paddingRight: 8 }}>
+          <StatusDot ok={ok} />{label}
+        </td>
+        <td style={{ fontSize: 13, fontVariantNumeric: 'tabular-nums', textAlign: 'right', paddingRight: 8 }}>
+          {valeur}
+        </td>
+        <td style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'right', whiteSpace: 'nowrap' }}>
+          [{min} – {max}]
+        </td>
+        <td style={{ paddingLeft: 12, width: 80 }}>
+          <RangeBar pct={pct} color={color} />
+        </td>
+      </tr>
+      {msg && (
+        <tr>
+          <td colSpan={4} style={{ paddingBottom: 8, paddingLeft: 18 }}>
+            <span style={{ fontSize: 11, color: 'var(--bad)' }}>↳ {msg}</span>
+          </td>
+        </tr>
+      )}
+    </>
   );
 }
 
@@ -732,15 +798,13 @@ export default function RecipeFiche({ recette }) {
           <div className="section">
             <h4>
               Rapport d&apos;équilibre
-              <span style={{
-                marginLeft: 10, fontSize: 11, fontWeight: 600, padding: '2px 7px',
-                borderRadius: 12,
-                background: rapport.ok ? '#e3efe6' : '#fce8d4',
-                color: rapport.ok ? 'var(--ok)' : 'var(--warn)',
-                textTransform: 'none', letterSpacing: 0,
-              }}>
-                {rapport.ok ? '✓ Équilibré' : '⚠ À ajuster'}
-              </span>
+              {(() => { const b = badgeV2(rapport.equilibre); return (
+                <span style={{
+                  marginLeft: 10, fontSize: 11, fontWeight: 600, padding: '2px 7px',
+                  borderRadius: 12, background: b.bg, color: b.color,
+                  textTransform: 'none', letterSpacing: 0,
+                }}>{b.label}</span>
+              ); })()}
             </h4>
 
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 16 }}>
@@ -754,7 +818,7 @@ export default function RecipeFiche({ recette }) {
               </thead>
               <tbody>
                 {Object.entries(rapport.equilibre).map(([key, e]) => (
-                  <EquilibreRow key={key} {...e} />
+                  <EquilibreRow key={key} paramKey={key} {...e} />
                 ))}
               </tbody>
             </table>
@@ -780,14 +844,6 @@ export default function RecipeFiche({ recette }) {
               ))}
             </div>
 
-            {/* Suggestions */}
-            {rapport.suggestions.length > 0 && (
-              <div style={{ marginTop: 12 }}>
-                {rapport.suggestions.map((s, i) => (
-                  <div key={i} className="note" style={{ marginBottom: 6 }}>{s}</div>
-                ))}
-              </div>
-            )}
           </div>
         )}
 
@@ -803,19 +859,13 @@ export default function RecipeFiche({ recette }) {
           <div className="section">
             <h4>
               Indicateurs d&apos;équilibre
-              <span style={{
-                marginLeft: 10, fontSize: 11, fontWeight: 600, padding: '2px 7px',
-                borderRadius: 12,
-                background: fourchettes.every(f => f.statut === 'ok' || f.statut === 'inconnu') ? '#e3efe6'
-                  : fourchettes.some(f => f.statut === 'hors') ? '#fce8d4' : '#fff8e1',
-                color: fourchettes.every(f => f.statut === 'ok' || f.statut === 'inconnu') ? 'var(--ok)'
-                  : fourchettes.some(f => f.statut === 'hors') ? 'var(--warn)' : 'var(--warn)',
-                textTransform: 'none', letterSpacing: 0,
-              }}>
-                {fourchettes.every(f => f.statut === 'ok' || f.statut === 'inconnu') ? '✓ Équilibré'
-                  : fourchettes.some(f => f.statut === 'hors') ? '✗ Hors fourchette'
-                  : '⚠ À vérifier'}
-              </span>
+              {(() => { const b = badgeV3(fourchettes); return (
+                <span style={{
+                  marginLeft: 10, fontSize: 11, fontWeight: 600, padding: '2px 7px',
+                  borderRadius: 12, background: b.bg, color: b.color,
+                  textTransform: 'none', letterSpacing: 0,
+                }}>{b.label}</span>
+              ); })()}
             </h4>
 
             {encarts.map((e, i) => (
@@ -848,22 +898,6 @@ export default function RecipeFiche({ recette }) {
               </tbody>
             </table>
 
-            {fourchettes.filter(f => f.conseil || f.conseil_chiffre).map((f, i) => (
-              <div key={i} className="note" style={{
-                borderColor: f.statut === 'hors' ? 'var(--bad)' : 'var(--warn)',
-                marginBottom: 6, fontSize: 12,
-              }}>
-                {f.conseil && <div>{f.conseil}</div>}
-                {f.conseil_chiffre && (
-                  <div style={{
-                    fontFamily: 'monospace', background: 'var(--bg)', borderRadius: 4,
-                    padding: '4px 8px', fontSize: 11, marginTop: f.conseil ? 6 : 0,
-                  }}>
-                    → {f.conseil_chiffre.description}
-                  </div>
-                )}
-              </div>
-            ))}
           </div>
         )}
 

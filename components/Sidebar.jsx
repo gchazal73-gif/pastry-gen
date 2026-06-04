@@ -40,7 +40,8 @@ const NAV_ITEMS = [
 
 const PLAN_KEY = 'pastry-gen-plan';
 
-const STORAGE_KEY = 'pastry-gen-sidebar-collapsed';
+const STORAGE_KEY      = 'pastry-gen-sidebar-collapsed';
+const STORAGE_KEY_SOON = 'nav-coming-soon-open';
 
 function readPlanCount() {
   try {
@@ -57,6 +58,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
   const [collapsed,  setCollapsed]  = useState(false);
   const [mounted,    setMounted]    = useState(false);
   const [planCount,  setPlanCount]  = useState(0);
+  const [soonOpen,   setSoonOpen]   = useState(false);
 
   // Lire la préférence stockée côté client uniquement
   useEffect(() => {
@@ -65,6 +67,9 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
     const stored = localStorage.getItem(STORAGE_KEY);
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (stored !== null) setCollapsed(stored === 'true');
+    const storedSoon = localStorage.getItem(STORAGE_KEY_SOON);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (storedSoon !== null) setSoonOpen(storedSoon === 'true');
   }, []);
 
   // Badge plan de travail — lecture initiale + écoute storage cross-tab
@@ -86,8 +91,20 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
     });
   }
 
+  function toggleSoon() {
+    setSoonOpen(prev => {
+      const next = !prev;
+      localStorage.setItem(STORAGE_KEY_SOON, String(next));
+      return next;
+    });
+  }
+
   // Pendant le SSR, on rend en mode déployé pour éviter le flash
-  const isCollapsed = mounted ? collapsed : false;
+  const isCollapsed  = mounted ? collapsed : false;
+  const isSoonOpen   = mounted ? soonOpen  : false;
+
+  const activeItems   = NAV_ITEMS.filter(item =>  item.active);
+  const disabledItems = NAV_ITEMS.filter(item => !item.active);
 
   return (
     <>
@@ -124,24 +141,10 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
 
         {/* Navigation */}
         <nav className="sidebar-nav">
-          {NAV_ITEMS.map(({ href, label, icon: Icon, active, tooltip }) => {
+          {/* Items actifs */}
+          {activeItems.map(({ href, label, icon: Icon }) => {
             const isCurrent = pathname === href;
             const isPlan    = href === '/plan-de-travail';
-
-            if (!active) {
-              return (
-                <span
-                  key={href}
-                  className={`nav-item nav-item--disabled${isCollapsed ? ' nav-item--icon-only' : ''}`}
-                  title={tooltip ?? `${label} — bientôt disponible`}
-                  aria-disabled="true"
-                >
-                  <span className="nav-item__icon"><Icon size={18} strokeWidth={1.8} /></span>
-                  {!isCollapsed && <span className="nav-item__label">{label}</span>}
-                  {!isCollapsed && <span className="nav-item__soon">Bientôt</span>}
-                </span>
-              );
-            }
             return (
               <Link
                 key={href}
@@ -158,6 +161,32 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
               </Link>
             );
           })}
+
+          {/* Section "À venir" — repliable, cachée en mode icônes */}
+          {!isCollapsed && (
+            <>
+              <button
+                className="nav-soon-header"
+                onClick={toggleSoon}
+                aria-expanded={isSoonOpen}
+              >
+                <span>À venir</span>
+                <span className={`nav-soon-header__arrow${isSoonOpen ? ' nav-soon-header__arrow--open' : ''}`}>▸</span>
+              </button>
+              {isSoonOpen && disabledItems.map(({ href, label, icon: Icon, tooltip }) => (
+                <span
+                  key={href}
+                  className="nav-item nav-item--disabled"
+                  title={tooltip ?? `${label} — bientôt disponible`}
+                  aria-disabled="true"
+                >
+                  <span className="nav-item__icon"><Icon size={18} strokeWidth={1.8} /></span>
+                  <span className="nav-item__label">{label}</span>
+                  <span className="nav-item__soon">Bientôt</span>
+                </span>
+              ))}
+            </>
+          )}
         </nav>
 
         {/* Pied — profil utilisateur */}

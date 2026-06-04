@@ -128,6 +128,12 @@
   font-variant-numeric: tabular-nums;
 }
 
+.cardPortions {
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
 .cardBadge {
   font-size: 10px;
   padding: 2px 7px;

@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import RecipeForm        from '@/components/RecipeForm';
 import RecipeFiche       from '@/components/RecipeFiche';
+import RecipeActions     from '@/components/RecipeActions';
 import GrilleComparaison from '@/components/GrilleComparaison';
 import {
   genererComparaison,
@@ -288,7 +289,10 @@ export default function GenerateurPage() {
           defaultTextureId={urlParams.textureId}
           defaultParfumId={urlParams.parfumId}
         />
-        <RecipeFiche recette={recette} />
+        <div>
+          <RecipeFiche recette={recette} />
+          {recette && <RecipeActions recette={recette} />}
+        </div>
       </div>
     </div>
   );
