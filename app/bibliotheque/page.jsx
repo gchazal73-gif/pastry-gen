@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { RECETTES, CATEGORIES } from '../../lib/recettes/index.js';
+import { RECETTES, CATEGORIES, FAMILLES } from '../../lib/recettes/index.js';
 import { getDensite, getDefaultEpaisseur, ASSIGNATION_DEFAUT } from '../../lib/densites.js';
 import { computeRecipeNutrition } from '../../lib/nutrition.js';
 import FilterPanel   from '../../components/bibliotheque/FilterPanel.jsx';
@@ -17,7 +17,8 @@ function genUid() {
 }
 
 export default function BibliothequePage() {
-  const [filtreCategorie,    setFiltreCategorie]    = useState('');
+  const [filtreFamille,      setFiltreFamille]       = useState('');
+  const [filtreSousCat,      setFiltreSousCat]       = useState('');
   const [filtresContraintes, setFiltresContraintes]  = useState([]);
   const [recherche,          setRecherche]           = useState('');
   const [tri,                setTri]                 = useState('');
@@ -46,7 +47,8 @@ export default function BibliothequePage() {
 
   const recettesFiltrees = useMemo(() => {
     let r = RECETTES;
-    if (filtreCategorie) r = r.filter(x => x.categorie === filtreCategorie);
+    if (filtreFamille)  r = r.filter(x => x.famille === filtreFamille);
+    if (filtreSousCat)  r = r.filter(x => x.sous_categorie === filtreSousCat);
     for (const c of filtresContraintes) {
       if (c === 'vegan')        r = r.filter(x => x.contraintes.vegan);
       if (c === 'sans_gluten')  r = r.filter(x => x.contraintes.sans_gluten);
@@ -85,7 +87,7 @@ export default function BibliothequePage() {
       r = [...r].sort((a, b) => kcal(a) - kcal(b));
     }
     return r;
-  }, [filtreCategorie, filtresContraintes, recherche, tri, filtreIngredient, filtreFavoris, favoris]);
+  }, [filtreFamille, filtreSousCat, filtresContraintes, recherche, tri, filtreIngredient, filtreFavoris, favoris]);
 
   function handleToggleFavori(e, id) {
     e.stopPropagation();
@@ -143,8 +145,10 @@ export default function BibliothequePage() {
 
       <div className={`${styles.grid} ${selected ? styles.gridWithDetail : ''}`}>
         <FilterPanel
-          filtreCategorie={filtreCategorie}
-          setFiltreCategorie={setFiltreCategorie}
+          filtreFamille={filtreFamille}
+          setFiltreFamille={setFiltreFamille}
+          filtreSousCat={filtreSousCat}
+          setFiltreSousCat={setFiltreSousCat}
           filtresContraintes={filtresContraintes}
           setFiltresContraintes={setFiltresContraintes}
           recherche={recherche}

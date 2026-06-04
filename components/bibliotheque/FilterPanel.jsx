@@ -1,6 +1,6 @@
 'use client';
 
-import { RECETTES, CATEGORIES } from '../../lib/recettes/index.js';
+import { RECETTES, FAMILLES, SOUS_CAT_LABELS } from '../../lib/recettes/index.js';
 import styles from '../../app/bibliotheque/bibliotheque.module.css';
 
 const CONTRAINTES = [
@@ -16,8 +16,24 @@ const TRI_OPTIONS = [
   { value: 'masse',    label: 'Masse ↑'   },
 ];
 
+function buildFamilleStats() {
+  const counts = {};
+  const sousCats = {};
+  for (const r of RECETTES) {
+    if (!r.famille) continue;
+    counts[r.famille] = (counts[r.famille] || 0) + 1;
+    if (!sousCats[r.famille]) sousCats[r.famille] = {};
+    const sc = r.sous_categorie;
+    sousCats[r.famille][sc] = (sousCats[r.famille][sc] || 0) + 1;
+  }
+  return { counts, sousCats };
+}
+
+const { counts: FAMILLE_COUNTS, sousCats: FAMILLE_SOUS_CATS } = buildFamilleStats();
+
 export default function FilterPanel({
-  filtreCategorie, setFiltreCategorie,
+  filtreFamille, setFiltreFamille,
+  filtreSousCat, setFiltreSousCat,
   filtresContraintes, setFiltresContraintes,
   recherche, setRecherche,
   tri, setTri,
@@ -25,9 +41,7 @@ export default function FilterPanel({
   tousLesIngredients = [],
   filtreFavoris, setFiltreFavoris, nbFavoris = 0,
 }) {
-  const cats = Object.entries(CATEGORIES).sort((a, b) => a[1].ordre - b[1].ordre);
-  const catCounts = {};
-  RECETTES.forEach(r => { catCounts[r.categorie] = (catCounts[r.categorie] || 0) + 1; });
+  const familles = Object.entries(FAMILLES).sort((a, b) => a[1].ordre - b[1].ordre);
 
   function toggleContrainte(id) {
     setFiltresContraintes(prev =>
@@ -35,7 +49,22 @@ export default function FilterPanel({
     );
   }
 
-  const hasFilters = filtreCategorie || filtresContraintes.length > 0 || recherche.trim() || tri || filtreIngredient.trim() || filtreFavoris;
+  function selectFamille(id) {
+    if (filtreFamille === id) {
+      setFiltreFamille('');
+      setFiltreSousCat('');
+    } else {
+      setFiltreFamille(id);
+      setFiltreSousCat('');
+    }
+  }
+
+  function selectSousCat(sc) {
+    setFiltreSousCat(filtreSousCat === sc ? '' : sc);
+  }
+
+  const hasFilters = filtreFamille || filtreSousCat || filtresContraintes.length > 0
+    || recherche.trim() || tri || filtreIngredient.trim() || filtreFavoris;
 
   return (
     <aside className={styles.filterPanel}>
@@ -88,27 +117,48 @@ export default function FilterPanel({
       </div>
 
       <div className={styles.filterSection}>
-        <p className={styles.filterTitle}>Catégorie</p>
+        <p className={styles.filterTitle}>Famille</p>
         <div className={styles.catList}>
           <button
-            className={`${styles.catItem} ${!filtreCategorie ? styles.catItemActive : ''}`}
-            onClick={() => setFiltreCategorie('')}
+            className={`${styles.catItem} ${!filtreFamille ? styles.catItemActive : ''}`}
+            onClick={() => { setFiltreFamille(''); setFiltreSousCat(''); }}
           >
             <span>Toutes</span>
             <span className={styles.catCount}>{RECETTES.length}</span>
           </button>
-          {cats.map(([id, cat]) => {
-            const count = catCounts[id] || 0;
+
+          {familles.map(([id, fam]) => {
+            const count = FAMILLE_COUNTS[id] || 0;
             if (count === 0) return null;
+            const isActive = filtreFamille === id;
+            const sousCatEntries = Object.entries(FAMILLE_SOUS_CATS[id] || {})
+              .sort((a, b) => b[1] - a[1]);
+
             return (
-              <button
-                key={id}
-                className={`${styles.catItem} ${filtreCategorie === id ? styles.catItemActive : ''}`}
-                onClick={() => setFiltreCategorie(filtreCategorie === id ? '' : id)}
-              >
-                <span>{cat.label}</span>
-                <span className={styles.catCount}>{count}</span>
-              </button>
+              <div key={id}>
+                <button
+                  className={`${styles.catItem} ${isActive ? styles.catItemActive : ''}`}
+                  onClick={() => selectFamille(id)}
+                >
+                  <span>{fam.label}</span>
+                  <span className={styles.catCount}>{count}</span>
+                </button>
+
+                {isActive && sousCatEntries.length > 0 && (
+                  <div className={styles.sousCatList}>
+                    {sousCatEntries.map(([sc, cnt]) => (
+                      <button
+                        key={sc}
+                        className={`${styles.sousCatItem} ${filtreSousCat === sc ? styles.sousCatItemActive : ''}`}
+                        onClick={() => selectSousCat(sc)}
+                      >
+                        <span>{SOUS_CAT_LABELS[sc] ?? sc.replace(/_/g, ' ')}</span>
+                        <span className={styles.catCount}>{cnt}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
@@ -154,7 +204,8 @@ export default function FilterPanel({
           className="secondary"
           style={{ width: '100%', fontSize: '12px' }}
           onClick={() => {
-            setFiltreCategorie('');
+            setFiltreFamille('');
+            setFiltreSousCat('');
             setFiltresContraintes([]);
             setRecherche('');
             setTri('');
