@@ -4,54 +4,29 @@ import { useState, useEffect } from 'react';
 import { TEMPLATES } from '@/lib/templates.js';
 import { PARFUMS, CONTRAINTES, FAMILLE_LABELS, FAMILLE_ORDER } from '@/lib/data.js';
 import { genererRecette } from '@/lib/engine.js';
-import { fetchIngredients, fetchTemplateTarget, TEMPLATE_FAMILLES, SUPABASE_TO_PARFUM_V1, FROZEN_TEMPLATES } from '@/lib/ingredient-store.js';
-import { autoBalance } from '@/lib/calculator.js';
-import { reequilibrer } from '@/lib/engine_glaces.js';
-import { calculerIndicateurs, calculerBreakdown } from '@/lib/engine_indicateurs.js';
-import { verifierFourchettes } from '@/lib/fourchettes.js';
-import { conseilsChiffres } from '@/lib/engine_conseils.js';
-import { reequilibrerNonGlace } from '@/lib/engine_reequilibrage.js';
-
-const FAMILLE_LABELS_SUPA = {
-  fruits_frais:           'Fruits frais',
-  purees_fruits:          'Purées de fruits',
-  chocolats_couvertures:  'Chocolats & couvertures',
-  oleagineux:             'Oléagineux',
-};
 
 export default function RecipeForm({ onRecette, onComparer = null, defaultTextureId = null, defaultParfumId = null }) {
-  const textureIds   = Object.keys(TEMPLATES);
+  const textureIds    = Object.keys(TEMPLATES);
   const initTextureId = (defaultTextureId && TEMPLATES[defaultTextureId]) ? defaultTextureId : textureIds[0];
 
-  const [textureId, setTextureId]         = useState(initTextureId);
-  const [masse, setMasse]                 = useState(800);
-  const [contraintes, setContraintes]     = useState([]);
-  const [format, setFormat]               = useState('');
+  const [textureId,    setTextureId]    = useState(initTextureId);
+  const [masse,        setMasse]        = useState(800);
+  const [contraintes,  setContraintes]  = useState([]);
+  const [format,       setFormat]       = useState('');
   const [parfumLocalId, setParfumLocalId] = useState(() => {
-    if (!defaultParfumId || !defaultTextureId) return '';
-    const t = TEMPLATES[defaultTextureId];
-    if (!t || TEMPLATE_FAMILLES[defaultTextureId] || t.parfumsCompat.length <= 1) return '';
-    return t.parfumsCompat.includes(defaultParfumId) ? defaultParfumId : '';
+    const t = TEMPLATES[initTextureId];
+    if (defaultParfumId && defaultTextureId && t && t.parfumsCompat.includes(defaultParfumId)) return defaultParfumId;
+    return t?.parfumsCompat.find(id => id !== 'nature') ?? t?.parfumsCompat[0] ?? '';
   });
 
-  // Bibliothèque Supabase
-  const [dbIngredients, setDbIngredients]     = useState([]);
-  const [selectedDbId, setSelectedDbId]       = useState('');
-  const [loadingDb, setLoadingDb]             = useState(false);
-
-  const tpl     = TEMPLATES[textureId];
-  const hasSupa = !!TEMPLATE_FAMILLES[textureId];
-  const isGlace = tpl.famille_texture === 'glaces_sorbets';
-  // Sélecteur parfum local : glaces + glaçages + inserts avec plusieurs parfums possibles
-  const showLocalParfumSelector = !hasSupa && tpl.parfumsCompat.length > 1;
+  const tpl = TEMPLATES[textureId];
 
   // Réinitialiser format et parfum local quand on change de texture
   useEffect(() => {
     const t = TEMPLATES[textureId];
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormat(t.formats ? Object.keys(t.formats)[0] : '');
-    const needsLocalParfum = !TEMPLATE_FAMILLES[textureId] && t.parfumsCompat.length > 1;
-    if (needsLocalParfum) {
+    if (t.parfumsCompat.length > 1) {
       setParfumLocalId(prev => {
         if (prev && t.parfumsCompat.includes(prev)) return prev;
         if (defaultParfumId && t.parfumsCompat.includes(defaultParfumId)) return defaultParfumId;
@@ -60,35 +35,13 @@ export default function RecipeForm({ onRecette, onComparer = null, defaultTextur
     }
   }, [textureId]);
 
-  // Charger les ingrédients Supabase uniquement pour les templates qui en ont besoin
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (!hasSupa) { setDbIngredients([]); setSelectedDbId(''); return; }
-    setLoadingDb(true);
-    setSelectedDbId('');
-    fetchIngredients({ familles: TEMPLATE_FAMILLES[textureId] })
-      .then(data => {
-        setDbIngredients(data);
-        if (data.length > 0) setSelectedDbId(data[0].id);
-      })
-      .catch(console.error)
-      .finally(() => setLoadingDb(false));
-  }, [textureId, hasSupa]);
-
-  // Résolution du parfumId V1 (partagée par Générer et Comparer)
-  function getParfumIdV1() {
-    if (hasSupa) {
-      if (!selectedDbId) return null;
-      const v1 = SUPABASE_TO_PARFUM_V1[selectedDbId];
-      if (!v1 || !PARFUMS[v1] || !tpl.parfumsCompat.includes(v1)) return null;
-      return v1;
-    }
-    if (showLocalParfumSelector) return parfumLocalId || tpl.parfumsCompat[0] || null;
+  function getParfumId() {
+    if (tpl.parfumsCompat.length > 1) return parfumLocalId || tpl.parfumsCompat[0] || null;
     return tpl.parfumsCompat[0] || null;
   }
 
   function handleComparer() {
-    const parfumId = getParfumIdV1();
+    const parfumId = getParfumId();
     if (!parfumId) return;
     onComparer?.({ textureId, parfumId, masse, contraintes, format: format || null });
   }
@@ -99,118 +52,25 @@ export default function RecipeForm({ onRecette, onComparer = null, defaultTextur
     );
   }
 
-  async function handleGenerer() {
-    let parfumId;
-    if (hasSupa) {
-      if (!selectedDbId) return;
-      parfumId = SUPABASE_TO_PARFUM_V1[selectedDbId];
-      if (!parfumId || !PARFUMS[parfumId]) {
-        alert(`Ingrédient "${selectedDbId}" non mappé vers V1 — recette non générée.`);
-        return;
-      }
-      if (!tpl.parfumsCompat.includes(parfumId)) {
-        alert(`Ce parfum n'est pas encore compatible avec le template "${tpl.label}".`);
-        return;
-      }
-    } else if (showLocalParfumSelector) {
-      parfumId = parfumLocalId || tpl.parfumsCompat[0];
-      if (!parfumId || !PARFUMS[parfumId]) return;
-    } else {
-      parfumId = tpl.parfumsCompat[0];
-    }
-
-    // Génération V1
+  function handleGenerer() {
+    const parfumId = getParfumId();
+    if (!parfumId || !PARFUMS[parfumId]) return;
     const recette = genererRecette({ textureId, parfumId, masse, contraintes, format: format || null });
-
-    // Rééquilibrage glace V3 (court-circuite le V2 Supabase)
-    if (isGlace) {
-      const cv = {
-        vegan:   contraintes.includes('vegan'),
-        lactose: contraintes.includes('lactose') || contraintes.includes('vegan'),
-        gluten:  contraintes.includes('gluten'),
-        igbas:   contraintes.includes('igbas'),
-        format:  format || null,
-      };
-      const { lignes: lignesR, journal: journalGlace, encarts, warnings } = reequilibrer(recette.lignes, textureId, masse, cv);
-      const indicateurs = calculerIndicateurs(lignesR, null);
-      const fourchettes = verifierFourchettes(indicateurs, textureId);
-      const breakdown = calculerBreakdown(lignesR, null);
-      const fourchettesAvecConseils = conseilsChiffres(breakdown, fourchettes);
-      onRecette({ ...recette, lignes: lignesR, rapport: null, journal: [], warnings, ingredientDb: null, indicateurs, fourchettes: fourchettesAvecConseils, encarts, journalGlace });
-      return;
-    }
-
-    // Rééquilibrage automatique V2
-    const dbIngredient = dbIngredients.find(i => i.id === selectedDbId) ?? null;
-    const templateTarget = await fetchTemplateTarget(textureId);
-    const rawCibles = templateTarget?.cibles ?? null;
-    // PAC non pertinent hors produits glacés
-    const cibles = rawCibles && !FROZEN_TEMPLATES.has(textureId)
-      ? (({ pac: _pac, ...rest }) => rest)(rawCibles)
-      : rawCibles;
-    const c = {
-      vegan:   contraintes.includes('vegan'),
-      lactose: contraintes.includes('lactose') || contraintes.includes('vegan'),
-      gluten:  contraintes.includes('gluten'),
-      igbas:   contraintes.includes('igbas'),
-      format:  format || null,
-    };
-
-    let finalLignes = recette.lignes;
-    let rapport = null;
-    let journal = [];
-    let warnings = [];
-
-    if (cibles) {
-      const balanced = autoBalance({ lignes: recette.lignes, mainIngredient: dbIngredient, cibles, masse, contraintes: c });
-      finalLignes = balanced.lignes;
-      rapport     = balanced.rapport;
-      journal     = balanced.journal;
-      warnings    = balanced.warnings;
-    }
-
-    // Rééquilibrage V3 — fourchettes professionnelles (toutes textures non glacées)
-    const reequil = reequilibrerNonGlace(finalLignes, textureId, masse, c, dbIngredient ?? null);
-    finalLignes = reequil.lignes;
-    const journalGlace = reequil.journal;
-    const encarts = reequil.encarts;
-    if (reequil.warnings.length > 0) warnings = [...warnings, ...reequil.warnings];
-
-    const indicateurs = calculerIndicateurs(finalLignes, dbIngredient ?? null);
-    const fourchettes = verifierFourchettes(indicateurs, textureId);
-    const breakdown = calculerBreakdown(finalLignes, dbIngredient ?? null);
-    const fourchettesAvecConseils = conseilsChiffres(breakdown, fourchettes);
-    onRecette({ ...recette, lignes: finalLignes, rapport, journal, warnings, ingredientDb: dbIngredient, indicateurs, fourchettes: fourchettesAvecConseils, encarts, journalGlace });
+    onRecette(recette);
   }
 
-  // Grouper les ingrédients Supabase par famille
-  const groupesSupa = {};
-  for (const ing of dbIngredients) {
-    if (!groupesSupa[ing.famille]) groupesSupa[ing.famille] = [];
-    groupesSupa[ing.famille].push(ing);
-  }
-  const famillesSupa = Object.keys(groupesSupa).sort();
-
-  // Grouper les textures par famille_texture pour le sélecteur
-  const textureGroupes = { _default: [], glaces_sorbets: [], glacages: [], inserts: [] };
-  for (const id of textureIds) {
-    const fam = TEMPLATES[id].famille_texture ?? '_default';
-    if (!textureGroupes[fam]) textureGroupes[fam] = [];
-    textureGroupes[fam].push(id);
-  }
-
-  // Grouper les parfums locaux (glaces/sorbets) par famille PARFUMS
+  // Grouper les parfums par famille PARFUMS pour les optgroups
   const parfumGroupes = {};
-  if (isGlace) {
-    for (const id of tpl.parfumsCompat) {
-      if (id === 'nature') continue;
-      const fam = PARFUMS[id]?.famille;
-      if (!fam) continue;
-      if (!parfumGroupes[fam]) parfumGroupes[fam] = [];
-      parfumGroupes[fam].push(id);
-    }
+  for (const id of tpl.parfumsCompat) {
+    if (id === 'nature') continue;
+    const fam = PARFUMS[id]?.famille;
+    if (!fam) continue;
+    if (!parfumGroupes[fam]) parfumGroupes[fam] = [];
+    parfumGroupes[fam].push(id);
   }
   const parfumFamilles = FAMILLE_ORDER.filter(f => parfumGroupes[f]);
+
+  const canGenerate = tpl.parfumsCompat.length <= 1 || !!parfumLocalId;
 
   return (
     <div className="panel">
@@ -219,66 +79,13 @@ export default function RecipeForm({ onRecette, onComparer = null, defaultTextur
       <div className="field">
         <label htmlFor="texture">Texture</label>
         <select id="texture" value={textureId} onChange={e => setTextureId(e.target.value)}>
-          {textureGroupes['_default'].length > 0 && (
-            <optgroup label="Pâtisseries">
-              {textureGroupes['_default'].map(id => (
-                <option key={id} value={id}>{TEMPLATES[id].label}</option>
-              ))}
-            </optgroup>
-          )}
-          {textureGroupes['glaces_sorbets'].length > 0 && (
-            <optgroup label="Glaces et sorbets">
-              {textureGroupes['glaces_sorbets'].map(id => (
-                <option key={id} value={id}>{TEMPLATES[id].label}</option>
-              ))}
-            </optgroup>
-          )}
-          {textureGroupes['glacages'].length > 0 && (
-            <optgroup label="Glaçages">
-              {textureGroupes['glacages'].map(id => (
-                <option key={id} value={id}>{TEMPLATES[id].label}</option>
-              ))}
-            </optgroup>
-          )}
-          {textureGroupes['inserts'].length > 0 && (
-            <optgroup label="Inserts">
-              {textureGroupes['inserts'].map(id => (
-                <option key={id} value={id}>{TEMPLATES[id].label}</option>
-              ))}
-            </optgroup>
-          )}
+          {textureIds.map(id => (
+            <option key={id} value={id}>{TEMPLATES[id].label}</option>
+          ))}
         </select>
       </div>
 
-      {/* Sélecteur Supabase (ganaches, crémeux, mousses, etc.) */}
-      {hasSupa && (
-        <div className="field">
-          <label htmlFor="parfum">
-            Ingrédient principal
-            {loadingDb && <span style={{ color: 'var(--muted)', fontWeight: 400, marginLeft: 8 }}>chargement…</span>}
-          </label>
-          <select
-            id="parfum"
-            value={selectedDbId}
-            onChange={e => setSelectedDbId(e.target.value)}
-            disabled={loadingDb}
-          >
-            {dbIngredients.length === 0 && !loadingDb && (
-              <option value="">— aucun ingrédient disponible —</option>
-            )}
-            {famillesSupa.map(fam => (
-              <optgroup key={fam} label={FAMILLE_LABELS_SUPA[fam] ?? fam}>
-                {groupesSupa[fam].map(ing => (
-                  <option key={ing.id} value={ing.id}>{ing.nom_fr}</option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {/* Sélecteur local parfum (glaces, sorbets, glaçages, inserts) */}
-      {showLocalParfumSelector && (
+      {tpl.parfumsCompat.length > 1 && (
         <div className="field">
           <label htmlFor="parfum-local">Parfum / arôme</label>
           <select
@@ -351,7 +158,7 @@ export default function RecipeForm({ onRecette, onComparer = null, defaultTextur
           className="primary"
           style={{ flex: 1 }}
           onClick={handleGenerer}
-          disabled={loadingDb || (hasSupa && !selectedDbId) || (showLocalParfumSelector && !parfumLocalId)}
+          disabled={!canGenerate}
         >
           Générer
         </button>
@@ -360,7 +167,7 @@ export default function RecipeForm({ onRecette, onComparer = null, defaultTextur
             className="secondary"
             style={{ flex: 1 }}
             onClick={handleComparer}
-            disabled={loadingDb || (hasSupa && !selectedDbId) || (showLocalParfumSelector && !parfumLocalId)}
+            disabled={!canGenerate}
             title="Comparer 4 versions (classique / sans lactose / vegan / bien-être)"
           >
             Comparer ▤
