@@ -18,12 +18,14 @@ import {
   Circle,
   Layers,
   Tag,
+  Snowflake,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { href: '/',               label: 'Créer une recette',  icon: ChefHat,         active: true  },
   { href: '/ingredients',    label: 'Ingrédients',        icon: Library,         active: true  },
   { href: '/bibliotheque',   label: 'Recettes',           icon: BookOpen,        active: true  },
+  { href: '/glacerie',       label: 'Glaces & sorbets',   icon: Snowflake,       active: true  },
   { href: '/moules',         label: 'Moules',             icon: Circle,          active: true  },
   { href: '/mercuriale',     label: 'Mercuriale',         icon: Tag,             active: true  },
   { href: '/plan-de-travail', label: 'Plan de travail',   icon: LayoutDashboard, active: true  },
