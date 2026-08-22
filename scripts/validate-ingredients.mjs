@@ -1,68 +1,38 @@
 #!/usr/bin/env node
 /**
- * Valide la cohérence de la bibliothèque d'ingrédients :
+ * Valide la cohérence de la bibliothèque d'ingrédients locale
+ * (lib/ingredients-db.js) :
  *   1. Somme des macros ≈ 100 g (tolérance : avert. > 2 g, erreur > 5 g)
  *   2. sucres_g ≤ glucides_g
- *   3. POD/PAC dans des plages plausibles (0-200)
+ *   3. POD/PAC dans des plages plausibles
+ *   4. Unicité des identifiants
  *
  * Usage : npm run validate-ingredients
+ * Aucune connexion réseau requise.
  */
 
-import { readFileSync } from 'fs';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { INGREDIENTS_DB, TEMPLATE_TARGETS } from '../lib/ingredients-db.js';
 
-const __dir = dirname(fileURLToPath(import.meta.url));
-const root  = resolve(__dir, '..');
+function fmt(n) { return n == null ? 'N/A' : Number(n).toFixed(2); }
 
-// Lecture manuelle de .env.local (pas de dépendance dotenv nécessaire)
-function loadEnv(file) {
-  try {
-    for (const line of readFileSync(file, 'utf8').split('\n')) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith('#')) continue;
-      const idx = trimmed.indexOf('=');
-      if (idx < 0) continue;
-      const key = trimmed.slice(0, idx).trim();
-      const val = trimmed.slice(idx + 1).trim().replace(/^["']|["']$/g, '');
-      if (!process.env[key]) process.env[key] = val;
-    }
-  } catch { /* .env.local absent : on continue avec les vars d'env existantes */ }
-}
-
-loadEnv(resolve(root, '.env.local'));
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error('❌ Variables NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY requises.');
-  process.exit(1);
-}
-
-async function fetchAll(table) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*`, {
-    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
-  });
-  if (!res.ok) throw new Error(`Fetch ${table} échoué : ${res.status}`);
-  return res.json();
-}
-
-function fmt(n) { return n == null ? 'N/A' : n.toFixed(2); }
-
-async function main() {
-  console.log('🔍 Validation de la bibliothèque d\'ingrédients…\n');
-
-  const [ingredients, templates] = await Promise.all([
-    fetchAll('ingredients'),
-    fetchAll('template_targets'),
-  ]);
+function main() {
+  console.log("🔍 Validation de la bibliothèque d'ingrédients (données locales)…\n");
 
   let errors   = 0;
   let warnings = 0;
 
-  // ── 1. Vérification macros ──────────────────────────────────────────────
-  for (const ing of ingredients) {
+  // ── 0. Unicité des ids ────────────────────────────────────────────────────
+  const seen = new Set();
+  for (const ing of INGREDIENTS_DB) {
+    if (seen.has(ing.id)) {
+      console.error(`❌ ERREUR   [${ing.id}] identifiant en double`);
+      errors++;
+    }
+    seen.add(ing.id);
+  }
+
+  for (const ing of INGREDIENTS_DB) {
+    // ── 1. Vérification macros ──────────────────────────────────────────────
     const sum =
       (ing.eau_g      ?? 0) +
       (ing.glucides_g ?? 0) +
@@ -81,14 +51,14 @@ async function main() {
       warnings++;
     }
 
-    // ── 2. sucres ≤ glucides ─────────────────────────────────────────────
+    // ── 2. sucres ≤ glucides ────────────────────────────────────────────────
     if (ing.sucres_g != null && ing.glucides_g != null &&
         ing.sucres_g > ing.glucides_g + 0.1) {
       console.error(`❌ ERREUR   [${ing.id}] sucres_g (${fmt(ing.sucres_g)}) > glucides_g (${fmt(ing.glucides_g)})`);
       errors++;
     }
 
-    // ── 3. POD/PAC plausibles ────────────────────────────────────────────
+    // ── 3. POD/PAC plausibles ───────────────────────────────────────────────
     if (ing.pod != null && (ing.pod < 0 || ing.pod > 220)) {
       console.warn(`⚠  WARNING  [${ing.id}] POD atypique : ${ing.pod} (plage attendue 0-220)`);
       warnings++;
@@ -99,11 +69,11 @@ async function main() {
     }
   }
 
-  // ── Rapport final ───────────────────────────────────────────────────────
+  // ── Rapport final ─────────────────────────────────────────────────────────
   console.log('\n──────────────────────────────────────────────');
-  console.log(`Ingrédients  : ${ingredients.length}`);
-  console.log(`Templates    : ${templates.length}`);
-  console.log(`Erreurs      : ${errors}`);
+  console.log(`Ingrédients    : ${INGREDIENTS_DB.length}`);
+  console.log(`Templates      : ${TEMPLATE_TARGETS.length}`);
+  console.log(`Erreurs        : ${errors}`);
   console.log(`Avertissements : ${warnings}`);
   console.log('──────────────────────────────────────────────');
 
@@ -117,4 +87,4 @@ async function main() {
   }
 }
 
-main().catch(err => { console.error(err); process.exit(1); });
+main();
