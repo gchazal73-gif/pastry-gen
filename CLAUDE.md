@@ -87,18 +87,29 @@ renommer partout.
 
 ## Supabase
 
-Une seule page en dépend : `/ingredients` (`components/IngredientLibrary.jsx` →
-`lib/ingredient-store.js`), sur les tables `ingredients` et `template_targets`.
-`TEMPLATE_FAMILLES` est **vide à dessein** — aucun template ne passe encore par
-la base, tout se génère en local.
+**Supabase est facultatif, et il ne sert qu'à une chose.** Une seule page en
+dépend : `/ingredients` (`components/IngredientLibrary.jsx` →
+`lib/ingredient-store.js`), sur la table `ingredients`. Le reste du dépôt ne
+l'importe nulle part — vérifié : `fetchTemplateTarget`, `TEMPLATE_FAMILLES`,
+`SUPABASE_TO_PARFUM_V1` et `FROZEN_TEMPLATES` sont exportés et jamais importés,
+et le paramètre `mainIngredient` qui ouvrirait la base au moteur de calcul reçoit
+`null` à tous ses appels réels (`lib/comparaison.js`). Le calcul est donc
+entièrement local.
 
 La migration `supabase/migrations/20260528_*.sql` ajoute à `ingredients` des
 colonnes coût / allergènes / DLC qui **doublent** `lib/ingredients-metier.js` :
 les moteurs `cout`, `allergenes` et `conservation` lisent le fichier local, pas
 la base. Ne pas supposer que la base fait autorité pour eux.
 
-`lib/supabase.js` crée le client à l'import, sans garde : une variable
-d'environnement manquante casse au chargement du module, pas à l'appel.
+`lib/supabase.js` n'instancie le client que si les deux variables sont
+présentes, et exporte `supabaseActif` pour le dire ; sinon il exporte `null` et
+les trois `fetch*` d'`ingredient-store` rendent une valeur vide. L'application
+se construit et se déploie donc **sans base** — la bibliothèque d'ingrédients
+est simplement vide, la page encaisse déjà ce cas.
+
+Cette garde n'est pas décorative : `createClient` levait « supabaseUrl is
+required » au chargement du module, donc pendant le prérendu de `/ingredients`,
+et faisait échouer `next build` avant qu'une seule requête soit tentée.
 
 ## État côté navigateur
 
