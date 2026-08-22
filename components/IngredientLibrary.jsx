@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { fetchIngredients } from '@/lib/ingredient-store.js';
+import { supabaseActif } from '@/lib/supabase.js';
 
 const FAMILLE_LABELS = {
   aromates_epices:        'Aromates & Épices',
@@ -106,13 +107,23 @@ export default function IngredientLibrary() {
   const [famFilters, setFamFilters]   = useState([]);
   const [selected, setSelected]       = useState(null);
   const [viewMode, setViewMode]       = useState('grid');
+  const [erreur, setErreur]           = useState(false);
 
   useEffect(() => {
     fetchIngredients()
       .then(setIngredients)
-      .catch(console.error)
+      .catch(err => { console.error(err); setErreur(true); })
       .finally(() => setLoading(false));
   }, []);
+
+  // Sans base branchee, annoncer « 0 ingredients · donnees CIQUAL / Bordas »
+  // laisserait croire a une bibliotheque vide alors qu'il n'y a pas de source.
+  function sousTitre() {
+    if (loading) return 'Chargement…';
+    if (!supabaseActif) return 'Aucune base d’ingrédients n’est branchée';
+    if (erreur) return 'La base n’a pas répondu';
+    return `${ingredients.length} ingrédients · données CIQUAL / Bordas`;
+  }
 
   function toggleFam(fam) {
     setFamFilters(prev => prev.includes(fam) ? prev.filter(f => f !== fam) : [...prev, fam]);
@@ -134,7 +145,7 @@ export default function IngredientLibrary() {
     <div className="page-content">
       <div className="page-header">
         <h1 className="page-title">Bibliothèque d&apos;ingrédients</h1>
-        <p className="page-subtitle">{loading ? 'Chargement…' : `${ingredients.length} ingrédients · données CIQUAL / Bordas`}</p>
+        <p className="page-subtitle">{sousTitre()}</p>
       </div>
 
       <div className="lib-toolbar">
@@ -173,7 +184,11 @@ export default function IngredientLibrary() {
                 <IngredientCard key={ing.id} ing={ing} onClick={setSelected} />
               ))}
               {!loading && filtered.length === 0 && (
-                <p style={{ color: 'var(--muted)', padding: '24px 0' }}>Aucun ingrédient correspondant.</p>
+                <p style={{ color: 'var(--muted)', padding: '24px 0' }}>
+                  {supabaseActif && !erreur
+                    ? 'Aucun ingrédient correspondant.'
+                    : 'Rien à afficher tant qu’aucune base n’est branchée.'}
+                </p>
               )}
             </div>
           ) : (
