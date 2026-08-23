@@ -75,8 +75,12 @@ par `dataKey`, sinon l'ingrédient passé en `mainIngredient`, sinon la table
 silencieusement sur le fallback.
 
 D'où le piège principal du dépôt : **le rôle est une chaîne, et il est apparié
-par expression régulière** (`ROLE_KEYWORD_MAP` dans `calculator.js`,
-`INDICATEUR_CONFIG` dans `engine_conseils.js` et `engine_reequilibrage.js`).
+par expression régulière**. La table qui fait foi est `ROLE_MAP` (40 entrées,
+lue par `getRoleKey`) dans `engine_indicateurs.js` ; s'y ajoutent
+`INDICATEUR_CONFIG` dans `engine_conseils.js`, et `IND_CONFIG` + `PARFUM_RE`
+dans `engine_reequilibrage.js`. L'ordre de `ROLE_MAP` compte — le premier motif
+qui accroche gagne, et les entrées ancrées (`^crème`, `^eau\b`, `^sel\b`) sont
+là pour ça : une nouvelle ligne mal placée détourne des rôles existants.
 Renommer un `role` ou un `label` de template ne casse rien visiblement : le
 calcul bascule sur une valeur générique et le résultat devient faux sans un
 message. Même chose pour les ingrédients, appariés par leur **nom français
