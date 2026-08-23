@@ -23,13 +23,14 @@ npx vitest run lib/__tests__/cout.test.js     # un fichier
 npx vitest run -t "coût matière"              # un cas par son nom
 npx vitest                                     # mode veille
 
-npm run validate-ingredients # cohérence de la table Supabase `ingredients`
+npm run validate-ingredients # cohérence de la bibliothèque locale `lib/ingredients-db.js`
 ```
 
-`validate-ingredients` tape l'API REST Supabase en direct : il lui faut
-`NEXT_PUBLIC_SUPABASE_URL` et `NEXT_PUBLIC_SUPABASE_ANON_KEY`, qu'il lit
-lui-même dans `.env.local` (non versionné). Il vérifie que les macros somment
-à 100 g, que `sucres_g ≤ glucides_g` et que POD/PAC restent plausibles.
+`validate-ingredients` ne demande **aucune variable d'environnement ni accès
+réseau** : il lit `lib/ingredients-db.js`. Il vérifie l'unicité des `id`, que les
+macros somment à 100 g, que `sucres_g ≤ glucides_g` et que POD/PAC restent
+plausibles. État actuel : 96 ingrédients, 4 cibles de template, 0 erreur,
+8 avertissements.
 
 ## Deux chemins de recettes, à ne jamais confondre
 
@@ -69,9 +70,9 @@ Un seul jeu de moteurs sert les deux chemins :
 | `moteur_accords.js` + `data_accords.js` | accords de parfums et textures compatibles |
 
 `engine_indicateurs` résout chaque ligne **en cascade** : `INGREDIENTS_GLACE`
-par `dataKey`, sinon l'ingrédient Supabase, sinon la table `FALLBACK` par rôle.
-La cascade ne lève jamais d'erreur — elle retombe silencieusement sur le
-fallback.
+par `dataKey`, sinon l'ingrédient passé en `mainIngredient`, sinon la table
+`FALLBACK` par rôle. La cascade ne lève jamais d'erreur — elle retombe
+silencieusement sur le fallback.
 
 D'où le piège principal du dépôt : **le rôle est une chaîne, et il est apparié
 par expression régulière** (`ROLE_KEYWORD_MAP` dans `calculator.js`,
@@ -85,31 +86,36 @@ recettes — `NUTRITION_ALIASES` existe justement pour rattraper les variantes
 (« Beurre pommade » → « Beurre doux »). Renommer un ingrédient, c'est le
 renommer partout.
 
-## Supabase
+## Pas de base : la bibliothèque d'ingrédients est locale
 
-**Supabase est facultatif, et il ne sert qu'à une chose.** Une seule page en
-dépend : `/ingredients` (`components/IngredientLibrary.jsx` →
-`lib/ingredient-store.js`), sur la table `ingredients`. Le reste du dépôt ne
-l'importe nulle part — vérifié : `fetchTemplateTarget`, `TEMPLATE_FAMILLES`,
-`SUPABASE_TO_PARFUM_V1` et `FROZEN_TEMPLATES` sont exportés et jamais importés,
-et le paramètre `mainIngredient` qui ouvrirait la base au moteur de calcul reçoit
-`null` à tous ses appels réels (`lib/comparaison.js`). Le calcul est donc
-entièrement local.
+**Il n'y a plus de Supabase.** La dépendance a été retirée le 2026-08-23 :
+`lib/supabase.js` est supprimé, `@supabase/supabase-js` ne figure plus dans
+`package.json`, et l'application ne fait plus **aucun appel réseau**. Elle se
+construit, se teste et se déploie sans la moindre variable d'environnement.
 
-La migration `supabase/migrations/20260528_*.sql` ajoute à `ingredients` des
-colonnes coût / allergènes / DLC qui **doublent** `lib/ingredients-metier.js` :
-les moteurs `cout`, `allergenes` et `conservation` lisent le fichier local, pas
-la base. Ne pas supposer que la base fait autorité pour eux.
+Les données vivent dans `lib/ingredients-db.js` — export figé de l'ancienne base
+au 2026-08-22 : `INGREDIENTS_DB` (96 ingrédients) et `TEMPLATE_TARGETS` (4).
 
-`lib/supabase.js` n'instancie le client que si les deux variables sont
-présentes, et exporte `supabaseActif` pour le dire ; sinon il exporte `null` et
-les trois `fetch*` d'`ingredient-store` rendent une valeur vide. L'application
-se construit et se déploie donc **sans base** — la bibliothèque d'ingrédients
-est simplement vide, la page encaisse déjà ce cas.
+`lib/ingredient-store.js` sert cette table. Ses trois `fetch*` restent
+**asynchrones par compatibilité** avec les appelants qui font déjà `await` ;
+les versions synchrones `getIngredients` / `getIngredientById` /
+`getTemplateTarget` sont à préférer dans le nouveau code.
 
-Cette garde n'est pas décorative : `createClient` levait « supabaseUrl is
-required » au chargement du module, donc pendant le prérendu de `/ingredients`,
-et faisait échouer `next build` avant qu'une seule requête soit tentée.
+Une seule page en dépend : `/ingredients` (`components/IngredientLibrary.jsx`,
+qui n'utilise que `fetchIngredients`). Tout le reste du module est exporté et
+jamais importé — `fetchIngredientById`, `fetchTemplateTarget`, les trois
+getters synchrones, `TEMPLATE_FAMILLES`, `FROZEN_TEMPLATES` et
+`INGREDIENT_TO_PARFUM_V1`. `SUPABASE_TO_PARFUM_V1` subsiste en simple alias de
+ce dernier : ne pas s'y fier, c'est un vestige.
+
+La bibliothèque étant désormais toujours peuplée, le cas « aucune base
+branchée » n'existe plus : `IngredientLibrary` ne signale qu'un échec de
+chargement.
+
+La migration `docs/archive-supabase-20260528_*.sql` (archivée, plus jouée)
+ajoutait des colonnes coût / allergènes / DLC qui **doublaient**
+`lib/ingredients-metier.js`. Les moteurs `cout`, `allergenes` et `conservation`
+ont toujours lu le fichier local, et c'est lui qui fait autorité.
 
 ## État côté navigateur
 
