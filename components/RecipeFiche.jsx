@@ -951,7 +951,7 @@ export default function RecipeFiche({ recette }) {
           </div>
         </div>
 
-        {/* Fiche ingrédient Supabase */}
+        {/* Fiche ingrédient (bibliothèque locale) */}
         {ingredientDb && (
           <div className="section" style={{ borderTop: '1px solid var(--line)', paddingTop: 16 }}>
             <h4>Données nutritionnelles — {ingredientDb.nom_fr}</h4>

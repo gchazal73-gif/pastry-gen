@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { fetchIngredients } from '@/lib/ingredient-store.js';
-import { supabaseActif } from '@/lib/supabase.js';
 
 const FAMILLE_LABELS = {
   aromates_epices:        'Aromates & Épices',
@@ -116,12 +115,11 @@ export default function IngredientLibrary() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Sans base branchee, annoncer « 0 ingredients · donnees CIQUAL / Bordas »
-  // laisserait croire a une bibliotheque vide alors qu'il n'y a pas de source.
+  // Les données sont locales (lib/ingredients-db.js) : la bibliothèque est
+  // toujours peuplée, seul un échec de chargement reste à signaler.
   function sousTitre() {
     if (loading) return 'Chargement…';
-    if (!supabaseActif) return 'Aucune base d’ingrédients n’est branchée';
-    if (erreur) return 'La base n’a pas répondu';
+    if (erreur) return 'La bibliothèque n’a pas pu être chargée';
     return `${ingredients.length} ingrédients · données CIQUAL / Bordas`;
   }
 
@@ -184,11 +182,7 @@ export default function IngredientLibrary() {
                 <IngredientCard key={ing.id} ing={ing} onClick={setSelected} />
               ))}
               {!loading && filtered.length === 0 && (
-                <p style={{ color: 'var(--muted)', padding: '24px 0' }}>
-                  {supabaseActif && !erreur
-                    ? 'Aucun ingrédient correspondant.'
-                    : 'Rien à afficher tant qu’aucune base n’est branchée.'}
-                </p>
+                <p style={{ color: 'var(--muted)', padding: '24px 0' }}>Aucun ingrédient correspondant.</p>
               )}
             </div>
           ) : (
