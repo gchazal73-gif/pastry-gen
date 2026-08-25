@@ -480,3 +480,116 @@ arrondis délibérés de la masse de référence (992 g notés 1 000, 910 notés
 **Invariant obtenu** : plus aucune recette marquée `a_verifier: false` ne
 présente d'incohérence arithmétique. Vérifié : build 12/12, lint 0 erreur,
 148 tests, 1 594 recettes, 0 id manquant ou dupliqué.
+
+---
+
+## 2026-08-25 — Import des 7 dernières catégories du disque (2 302 recettes)
+
+**Ce qui bloquait.** Le reliquat annoncé « ~5 500 fichiers » ne tenait pas au
+volume mais au format. `parse_fiches_v2.py` ne globait que `*.xlsx` et
+`parse_docx.py` que `*.docx`, tous deux **sans récursion**. Or les sept
+catégories restantes comptent **2 480 `.xls`** (binaire Excel 97) et
+**1 345 `.doc`** (binaire Word), rangés en sous-dossiers parfois profonds
+(`Le Meurice - Opera/Recette Meurice/Toutes les recettes/Recettes FAUCHON/...`).
+Rien de tout cela n'était visible des parseurs.
+
+**Outils ajoutés** — `recettes-extraites/_scripts/` :
+- `parse_any.py` — parcours récursif, lecture native du `.xls` via `xlrd` en
+  présentant à `parse_fiches_v2` un objet compatible openpyxl (monkeypatch de
+  `openpyxl.load_workbook`). Toute la logique de choix de feuille et de colonne
+  de quantité est réutilisée telle quelle.
+- `parse_docx_sections.py` — découpage d'un document Word en **une fiche par
+  préparation**. Le corpus Pierre Hermé enchaîne cinq à dix préparations par
+  document, chacune avec sa composition au gramme et son procédé ; la lecture
+  globale les écrasait en une seule fiche au procédé vide. Le titre n'est pas
+  reconnu à sa ponctuation (le « : » final manque dans la moitié du corpus)
+  mais à sa position : ligne courte, non-ingrédient, suivie d'au moins deux
+  lignes d'ingrédients.
+- `.doc` → `.docx` par LibreOffice headless (1 251 conversions).
+
+**Conversions d'unités** (table validée par Guillaume, `COUNT_TO_G`) : gousse de
+vanille 6 g, œuf entier 55 g, zeste d'agrume 5 g, feuille de gélatine 2 g,
+jaune 20 g, blanc 35 g. Chaque ligne convertie garde son libellé d'origine dans
+`converti_depuis`. Sans cette table, toute fiche portant « 3 feuilles de
+gélatine » était inexploitable.
+
+### Deux catégories nouvelles
+
+`classiques` — 216 desserts composés (tarte, éclair, Paris-Brest, Saint-Honoré,
+mille-feuille, bûche, vacherin). Leur composition extraite est une **liste
+unique** où pâte, crème et fruits sont mêlés : inexploitable par le générateur
+de textures, d'où une catégorie hors des familles qui l'alimentent.
+`assemblages` reste distincte : elle décrit les mêmes desserts étage par étage
+(champ `composants`, procédé de chaque préparation). Deux schémas, deux
+familles — les confondre ferait passer les secondes pour des assemblages
+appauvris.
+
+`traiteur` — 19 fiches salées (poulet, pesto, mayonnaise, jambon-beurre,
+pickles) venues des dossiers traiteur et snacking. Ce n'est pas de la
+pâtisserie, mais les fiches sont exploitables ; elles sont simplement rangées à
+part.
+
+**Écarté volontairement :**
+
+| Motif | Nombre |
+|---|---|
+| Feuilles de montage Fauchon / Le Meurice (ingrédients = d'autres recettes) | ~200 |
+| Sous-recettes dont un ingrédient reste non pesé (« 1 pièce », « 2 pamplemousses ») | 424 |
+| Nom inexploitable (le découpage a pris une ligne de quantité pour un titre) | 218 |
+| Encore non classées | 332 |
+
+**Classifieur** : 26 familles ajoutées à `REGLES` (sablés, cookies, financiers,
+génoises, parfaits glacés, guimauves, garnitures, gels agar, décors chocolat,
+nougats, craquelins, boissons chaudes, fruits pochés…) et tolérance au pluriel :
+la moitié des règles était écrite au singulier, si bien que « Meringues
+arlequins » ou « Sablés bretons » passaient entre les mailles.
+
+## 2026-08-25 — Passe allergènes sur tout le corpus
+
+`scripts/recalc-allergenes.mjs` (rejouable, `--write` pour appliquer).
+
+**Ce qui était faux.** La règle gluten cherchait `ble` sans frontière de mot :
+elle accrochait *bleu*, *liposoluble*, *érable*, *préalable*, *sable*.
+Symétriquement, farine de riz, de sarrasin et de châtaigne étaient comptées
+comme gluten. Le vocabulaire avait aussi dérivé au fil des imports — `oeuf` et
+`oeufs`, `arachide` et `arachides`, `fruits_a_coque` et
+`fruits_a_coque_noisette` coexistaient, et deux clés n'étaient pas des
+allergènes du tout : `gélatine` (l'information utile est
+`contraintes.vegan`) et `lactose`.
+
+**Pièges rencontrés en écrivant le script**, tous vérifiés avant écriture :
+- la ligature **`Œ` majuscule** n'est pas couverte par `.replace(/œ/g,…)` : il
+  faut passer en minuscules **avant**. Sans cela « Œufs entiers » ne déclenchait
+  pas l'allergène œuf — 417 recettes auraient perdu leur mention ;
+- `semoule` accrochait « **sucre** semoule » : 1 150 faux gluten ;
+- `moules?` accrochait les **moules à pâtisserie**, pas des mollusques ;
+- seules les lignes de la forme `{ nom: "…", g: … }` doivent être lues : les
+  `nom:` de recette et de composant sont des noms de préparations, et le seul
+  mot « dacquoise » suffisait à déduire du gluten ;
+- `signature_fruit_agrumes.js` écrit ses clés en **apostrophes simples** : une
+  regex limitée aux guillemets doubles laissait ses 70 recettes hors du passage.
+
+**Résultat** : 370 recettes corrigées, vocabulaire ramené à dix identifiants
+INCO, plus aucune recette sans champ `allergenes`. Le script est idempotent.
+
+**Ce que cette passe ne corrige pas.** Ce champ ne sert qu'à l'affichage de la
+bibliothèque. Le moteur qui fait foi — `lib/allergenes.js`, utilisé par le plan
+de travail et la fiche recette — lit `lib/ingredients-metier.js`, qui ne connaît
+que **58 ingrédients**. Sur les 3 719 libellés distincts du corpus, 3 665 n'y ont
+aucune entrée : **68 % des lignes** sont donc « non vérifiables » à l'impression,
+et pas sur des ingrédients exotiques — *sucre*, *lait*, *œufs*, *crème*,
+*gélatine* en font partie, faute de correspondance de libellé. Le remède tient
+en deux temps : une table d'alias sur le modèle de `NUTRITION_ALIASES`
+(`creme`, `creme liquide`, `creme uht`, `creme fraiche fluide (32/34% mg)` →
+`Crème liquide 35%`), puis l'extension du référentiel lui-même.
+
+**Vérifié** : 3 896 recettes, 0 id dupliqué, 0 recette sans famille, 0 somme de
+pourcentages hors tolérance, 12 routes construites, lint 0 erreur, 148 tests.
+
+**À surveiller** : `lib/recettes` passe de 2,9 à 7,3 Mo, et le chunk client de
+2,20 Mo à 6,03 Mo (0,38 → 0,98 Mo gzip). La bibliothèque est importée
+statiquement par `FilterPanel` : au prochain lot, il faudra charger les
+catégories à la demande.
+
+**Reste sur le disque** : `Dossier EQUILIBRE`, `Livre a rentrer en Excel`
+(PDF, non traités), et les 332 fiches non classées ci-dessus.

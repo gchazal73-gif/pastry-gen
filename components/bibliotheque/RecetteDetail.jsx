@@ -28,13 +28,25 @@ const ROLE_LABELS = {
   texture:   'Texture',
 };
 
+// Vocabulaire aligné sur celui que pose scripts/recalc-allergenes.mjs.
+// La clé était `lactose` et `arachides` : aucune recette ne les portait plus
+// après l'harmonisation, et `lait` — la plus fréquente — n'avait pas de
+// libellé, donc s'affichait telle quelle.
 const ALLERGEN_LABELS = {
   gluten:         'Gluten',
   oeuf:           'Œufs',
-  lactose:        'Lait',
+  lait:           'Lait',
   fruits_a_coque: 'Fruits à coque',
-  arachides:      'Arachides',
+  arachide:       'Arachides',
   soja:           'Soja',
+  sesame:         'Sésame',
+  sulfites:       'Sulfites',
+  moutarde:       'Moutarde',
+  celeri:         'Céleri',
+  poisson:        'Poissons',
+  crustaces:      'Crustacés',
+  mollusques:     'Mollusques',
+  lupin:          'Lupin',
 };
 
 const PRESETS = [
