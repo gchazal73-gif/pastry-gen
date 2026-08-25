@@ -440,3 +440,43 @@ Nutrition : +1 CIQUAL (riz blanc cru) + 17 nouveaux aliases (poudre à flan, Nes
 | **Total** | **13–285** | | **142 entrées** |
 
 **Non extraits (pp. 286–292) :** index, bibliographie, table des matières — aucune recette.
+
+---
+
+## 2026-08-25 — Correction de masse : pourcentages recalculés (aucune extraction)
+
+Pas un lot d'extraction : une correction de données sur la bibliothèque existante.
+
+**Cause racine.** Sur 118 recettes, `pct` avait été calculé comme
+`g / masse_totale_g × 100` au lieu de `g / Σg × 100`. Tant que
+`masse_totale_g = Σg` le résultat était juste ; dès que les deux divergeaient,
+les pourcentages devenaient faux et leur somme s'écartait de 100 — jusqu'à
+179 % (`mayorque-ln2`) et 144 % (`tarte-bourbon-chocolat-ln2`).
+
+**Impact.** `engine_indicateurs.js` fait `const f = l.pct / 100` : tous les
+indicateurs (ES, MG, MSNG, sucres, POD, PAC) étaient gonflés à proportion de
+l'écart. `nutrition.js` répartissait les masses sur la même base faussée.
+
+**Correction appliquée** — 98 recettes, 13 fichiers :
+- `pct` recalculé sur Σg, une décimale, répartition à la plus forte reste pour
+  une somme exacte de 100. 97 recettes prises sur le critère `|Σpct−100| > 1,5`,
+  plus `zebre-ln2` dont les erreurs se compensaient (99 % sur une ligne, 0 % sur
+  cinq autres) et que ce critère avait laissé passer.
+- **Ni `g`, ni `masse_totale_g`, ni aucun autre champ n'ont été touchés.** Sans
+  le PDF source, on ne peut pas trancher entre un total erroné et un ingrédient
+  perdu à l'extraction : recalculer l'un ou l'autre aurait masqué le problème.
+
+**Drapeaux posés** : 84 recettes passées à `a_verifier: true` (82 + 2), portant
+le total de 1 006 à 1 090.
+
+**Reste à vérifier sur source** — 96 recettes, toutes flaguées :
+- 92 où `Σg ≠ masse_totale_g` d'au moins 2 % (dont 14 au-delà de 30 %) ;
+- 4 dont une ligne a un `g` nul ou absent : `glacage-griotte`,
+  `nappage-melon`, `nappage-orange`, `compotee-bergamote`.
+
+Les 25 recettes dont l'écart reste sous 2 % n'ont pas été flaguées : ce sont des
+arrondis délibérés de la masse de référence (992 g notés 1 000, 910 notés 900).
+
+**Invariant obtenu** : plus aucune recette marquée `a_verifier: false` ne
+présente d'incohérence arithmétique. Vérifié : build 12/12, lint 0 erreur,
+148 tests, 1 594 recettes, 0 id manquant ou dupliqué.
