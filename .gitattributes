@@ -1,0 +1,27 @@
+# Fins de ligne normalisées à LF dans le dépôt, quel que soit le poste.
+#
+# Sans ce fichier, un checkout Windows peut écrire le contenu en CRLF sur le
+# disque alors que l'index le stocke en LF : `git status` affiche alors tout le
+# dépôt comme modifié (110 fichiers, 86 000 lignes de diff pour zéro changement
+# réel), et le moindre commit devient illisible. C'est arrivé le 2026-08-25.
+#
+# `text=auto` laisse git décider ce qui est du texte ; `eol=lf` impose LF à la
+# copie de travail comme à l'index.
+* text=auto eol=lf
+
+# Binaires : jamais de conversion, elle les corromprait.
+*.ico   binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.pdf   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.otf   binary
+*.xlsx  binary
+*.xls   binary
+*.docx  binary
+*.doc   binary
