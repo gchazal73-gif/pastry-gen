@@ -289,7 +289,8 @@ function EtiquetteVitrine({ slot, recette, today, isLast }) {
 
   const cout      = calculerCoutAvecRatios(lignes, getMergedMetier(INGREDIENTS_METIER));
   const allergenes = getRecetteAllergenes(lignes, INGREDIENTS_METIER);
-  const label     = formatLabelInco(allergenes.allergenes_presents, allergenes.traces_possibles);
+  const label     = formatLabelInco(allergenes.allergenes_presents, allergenes.traces_possibles,
+                                    allergenes.allergenes_deduits);
   const dlc       = calculerDlcRecette(lignes, recette.sous_categorie, INGREDIENTS_METIER);
 
   return (
@@ -318,6 +319,13 @@ function EtiquetteVitrine({ slot, recette, today, isLast }) {
         />
       ) : (
         <div style={{ fontSize: 11, color: '#555', marginBottom: 8 }}>Sans allergène majeur déclaré.</div>
+      )}
+      {/* Provenance de l'information : sur une étiquette remise au client,
+          un allergène déduit du libellé ne vaut pas une fiche fournisseur. */}
+      {label.note && (
+        <div style={{ fontSize: 10, color: '#555', marginBottom: 6, fontStyle: 'italic' }}>
+          {label.note}
+        </div>
       )}
       {allergenes.ingredients_sans_donnees.length > 0 && (
         <div style={{ fontSize: 10, color: '#888', marginBottom: 6 }}>

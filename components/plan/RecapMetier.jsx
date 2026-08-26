@@ -45,7 +45,8 @@ export default function RecapMetier({ slots, recettesMap }) {
   );
 
   const allergenesLabel = useMemo(
-    () => formatLabelInco(allergenesTotal.allergenes_presents, allergenesTotal.traces_possibles),
+    () => formatLabelInco(allergenesTotal.allergenes_presents, allergenesTotal.traces_possibles,
+                          allergenesTotal.allergenes_deduits),
     [allergenesTotal],
   );
 
@@ -138,9 +139,16 @@ export default function RecapMetier({ slots, recettesMap }) {
             ) : (
               <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 10 }}>Aucun allergène majeur identifié.</div>
             )}
+            {allergenesLabel.note && (
+              <div style={{ fontSize: 11, color: 'var(--muted)', fontStyle: 'italic', marginBottom: 10 }}>
+                {allergenesLabel.note}
+              </div>
+            )}
             {allergenesTotal.repartition.map((r, i) => (
               <div key={i} style={{ display: 'flex', gap: 10, padding: '4px 0', borderBottom: '1px solid var(--line)', fontSize: 12 }}>
-                <span style={{ fontWeight: 600, minWidth: 120 }}>{r.label}</span>
+                <span style={{ fontWeight: 600, minWidth: 120 }}>
+                  {r.label}{r.verifie ? '' : '°'}
+                </span>
                 <span style={{ color: 'var(--muted)' }}>{r.ingredients.join(', ')}</span>
               </div>
             ))}

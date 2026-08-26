@@ -575,7 +575,8 @@ function EncartAllergenes({ lignes }) {
 
   const result = useMemo(() => getRecetteAllergenes(lignes, INGREDIENTS_METIER), [lignes]);
   const label  = useMemo(
-    () => formatLabelInco(result.allergenes_presents, result.traces_possibles),
+    () => formatLabelInco(result.allergenes_presents, result.traces_possibles,
+                          result.allergenes_deduits),
     [result],
   );
 
@@ -607,10 +608,17 @@ function EncartAllergenes({ lignes }) {
           )}
 
           {label.texte ? (
-            <div
-              style={{ background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: 8, padding: '10px 14px', fontSize: 13, lineHeight: 1.5, marginBottom: 12 }}
-              dangerouslySetInnerHTML={{ __html: label.html }}
-            />
+            <>
+              <div
+                style={{ background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: 8, padding: '10px 14px', fontSize: 13, lineHeight: 1.5, marginBottom: label.note ? 4 : 12 }}
+                dangerouslySetInnerHTML={{ __html: label.html }}
+              />
+              {label.note && (
+                <div style={{ fontSize: 11, color: 'var(--muted)', fontStyle: 'italic', marginBottom: 12 }}>
+                  {label.note}
+                </div>
+              )}
+            </>
           ) : (
             !result.ingredients_sans_donnees.length && (
               <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 10 }}>

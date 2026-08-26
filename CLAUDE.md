@@ -69,6 +69,33 @@ Un seul jeu de moteurs sert les deux chemins :
 | `production.js` + `moules.js` | géométrie du moule → volume → masses par couche |
 | `moteur_accords.js` + `data_accords.js` | accords de parfums et textures compatibles |
 
+## Les allergènes se résolvent en trois étages
+
+`allergenes.js` interroge d'abord `ingredients-metier.js` — le référentiel, qui
+fait foi et qui seul connaît les **traces possibles**. Mais il ne contient que
+58 ingrédients : 32 % des lignes du corpus y trouvent une correspondance exacte.
+Le reste passe par `allergenes-familles.js`, qui lit la **famille** dans le
+libellé (« Crème UHT », « Crème fraîche fluide (32/34 % MG) » et « Crème liquide
+35 % » disent toutes *lait*).
+
+Trois issues, et la troisième compte autant que les deux premières :
+`deduction` (la famille porte un allergène), `famille_sans_allergene` (famille
+identifiée, rien à déclarer — le sucre n'a pas d'allergène, et le dire est une
+information) et `inconnu`. Seul ce dernier fait dire à la fiche qu'elle ne sait
+pas. Répartition actuelle : 32 % / 28 % / 36 % / 4 %.
+
+`getRecetteAllergenes` sépare `allergenes_verifies` de `allergenes_deduits` : un
+allergène attesté au référentiel sur au moins une ligne est vérifié, sinon il
+reste déduit. `formatLabelInco` le marque d'un ° et fournit la note d'explication
+**à part** du libellé légal, à charge de chaque surface de la rendre.
+
+Deux pièges à ne pas rouvrir. Une **déduction ne connaît jamais les traces** :
+`traces_possibles` reste vide hors référentiel, et c'est une limite à afficher,
+pas à combler. Et un **cru de couverture non listé reste `inconnu`** : le
+déclarer sans allergène ferait disparaître le lait d'un cru lacté. La liste des
+crus noirs dans `allergenes-familles.js` est du métier, pas du code — elle se
+relit, elle ne se devine pas.
+
 `engine_indicateurs` résout chaque ligne **en cascade** : `INGREDIENTS_GLACE`
 par `dataKey`, sinon l'ingrédient passé en `mainIngredient`, sinon la table
 `FALLBACK` par rôle. La cascade ne lève jamais d'erreur — elle retombe
