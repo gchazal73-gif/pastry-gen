@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { RECETTES, CATEGORIES, FAMILLES } from '../../lib/recettes/index.js';
+import { CATALOGUE, NB_RECETTES, INGREDIENTS_CONNUS, chargerRecette,
+         CATEGORIES, FAMILLES } from '../../lib/recettes/index.js';
 import { getDensite, getDefaultEpaisseur, ASSIGNATION_DEFAUT } from '../../lib/densites.js';
-import { computeRecipeNutrition } from '../../lib/nutrition.js';
 import FilterPanel   from '../../components/bibliotheque/FilterPanel.jsx';
 import RecetteCard   from '../../components/bibliotheque/RecetteCard.jsx';
 import RecetteDetail from '../../components/bibliotheque/RecetteDetail.jsx';
@@ -28,6 +28,7 @@ export default function BibliothequePage() {
   const [selected,           setSelected]            = useState(null);
   const [masse,              setMasse]               = useState(null);
   const [toast,              setToast]               = useState(false);
+  const [chargementFiche,    setChargementFiche]     = useState(null);
   const toastTimer = useRef(null);
 
   // Restaurer le tri depuis localStorage au montage
@@ -42,22 +43,10 @@ export default function BibliothequePage() {
     localStorage.setItem('bibliotheque-sort', tri);
   }, [tri]);
 
-  const tousLesIngredients = useMemo(() => {
-    const set = new Set();
-    RECETTES.forEach(r => {
-      if (r.type === 'assemblage') {
-        r.composants?.forEach(comp =>
-          comp.ingredients?.forEach(ing => set.add(ing.nom))
-        );
-      } else {
-        r.ingredients?.forEach(ing => set.add(ing.nom));
-      }
-    });
-    return [...set].sort((a, b) => a.localeCompare(b, 'fr'));
-  }, []);
+  const tousLesIngredients = INGREDIENTS_CONNUS;
 
   const recettesFiltrees = useMemo(() => {
-    let r = RECETTES;
+    let r = CATALOGUE;
     if (filtreFamille)  r = r.filter(x => x.famille === filtreFamille);
     if (filtreSousCat)  r = r.filter(x => x.sous_categorie === filtreSousCat);
     for (const c of filtresContraintes) {
@@ -77,28 +66,15 @@ export default function BibliothequePage() {
     if (filtreFavoris) r = r.filter(x => favoris.includes(x.id));
     if (filtreIngredient.trim()) {
       const q = filtreIngredient.toLowerCase();
-      r = r.filter(recette => {
-        const ings = recette.type === 'assemblage'
-          ? recette.composants?.flatMap(c => c.ingredients ?? [])
-          : recette.ingredients ?? [];
-        return ings.some(ing => ing.nom.toLowerCase().includes(q));
-      });
+      // `ingredients_noms` est précalculé au catalogue : le filtre par
+      // ingrédient n'a plus besoin des pesées, donc plus besoin du corpus.
+      r = r.filter(recette => recette.ingredients_noms.some(n => n.toLowerCase().includes(q)));
     }
     if (tri === 'nom')      r = [...r].sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
     if (tri === 'famille')  r = [...r].sort((a, b) => (a.famille ?? '').localeCompare(b.famille ?? '', 'fr') || a.nom.localeCompare(b.nom, 'fr'));
     if (tri === 'valide')   r = [...r].sort((a, b) => (a.a_verifier ? 1 : 0) - (b.a_verifier ? 1 : 0) || a.nom.localeCompare(b.nom, 'fr'));
     if (tri === 'masse')    r = [...r].sort((a, b) => (a.masse_totale_g ?? 0) - (b.masse_totale_g ?? 0));
-    if (tri === 'calories') {
-      const cache = new Map();
-      const kcal = x => {
-        if (!cache.has(x.id)) {
-          try { cache.set(x.id, computeRecipeNutrition(x)?.per_100g?.energie_kcal ?? 0); }
-          catch { cache.set(x.id, 0); }
-        }
-        return cache.get(x.id);
-      };
-      r = [...r].sort((a, b) => kcal(a) - kcal(b));
-    }
+    if (tri === 'calories') r = [...r].sort((a, b) => (a.kcal_100g ?? 0) - (b.kcal_100g ?? 0));
     return r;
   }, [filtreFamille, filtreSousCat, filtresContraintes, recherche, tri, filtreIngredient, filtreFavoris, favoris]);
 
@@ -107,13 +83,19 @@ export default function BibliothequePage() {
     setFavoris(toggleFavori(id));
   }
 
-  function handleSelect(recette) {
-    if (selected?.id === recette.id) {
+  // La liste ne connaît que l'index : la fiche a besoin du procédé et des
+  // pesées, qui arrivent par import dynamique au moment du clic.
+  async function handleSelect(entree) {
+    if (selected?.id === entree.id) {
       setSelected(null);
       return;
     }
-    setSelected(recette);
-    setMasse(recette.masse_totale_g);
+    setChargementFiche(entree.id);
+    const complete = await chargerRecette(entree.id);
+    setChargementFiche(null);
+    if (!complete) return;
+    setSelected(complete);
+    setMasse(complete.masse_totale_g);
   }
 
   function addToPlan(recette) {
@@ -152,7 +134,7 @@ export default function BibliothequePage() {
         <h1 className="page-title">Bibliothèque de recettes</h1>
         <p className="page-subtitle">
           {recettesFiltrees.length} recette{recettesFiltrees.length !== 1 ? 's' : ''} affichée{recettesFiltrees.length !== 1 ? 's' : ''}
-          {recettesFiltrees.length !== RECETTES.length && ` · ${RECETTES.length} au total`}
+          {recettesFiltrees.length !== NB_RECETTES && ` · ${NB_RECETTES} au total`}
         </p>
       </div>
 
@@ -188,7 +170,7 @@ export default function BibliothequePage() {
                 <RecetteCard
                   key={r.id}
                   recette={r}
-                  selected={selected?.id === r.id}
+                  selected={selected?.id === r.id || chargementFiche === r.id}
                   onSelect={handleSelect}
                   onAddToPlan={addToPlan}
                   categories={CATEGORIES}

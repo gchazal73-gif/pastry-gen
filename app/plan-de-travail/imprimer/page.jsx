@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Printer } from 'lucide-react';
-import { RECETTES } from '../../../lib/recettes/index.js';
+import { chargerRecettes } from '../../../lib/recettes/index.js';
 import { INGREDIENTS_METIER } from '../../../lib/ingredients-metier.js';
 import { getMergedMetier } from '../../../lib/mercuriale-store.js';
 import { calculerCoutAvecRatios, formatPrix } from '../../../lib/cout.js';
@@ -372,11 +372,22 @@ export default function ImprimerPage() {
     setHydrated(true);
   }, []);
 
+  // Recettes complètes en import dynamique. Rien ne s'affiche tant qu'elles ne
+  // sont pas là : `slotsWithRecettes` écarte les slots dont la recette manque,
+  // donc rendre trop tôt imprimerait une feuille vide — pire que d'attendre.
+  const [recettesCompletes, setRecettesCompletes] = useState(null);
+  useEffect(() => {
+    if (!hydrated || slots.length === 0) return;
+    let vivant = true;
+    chargerRecettes().then(rs => { if (vivant) setRecettesCompletes(rs); });
+    return () => { vivant = false; };
+  }, [hydrated, slots.length]);
+
   const recettesMap = useMemo(() => {
     const map = {};
-    RECETTES.forEach(r => { map[r.id] = r; });
+    (recettesCompletes ?? []).forEach(r => { map[r.id] = r; });
     return map;
-  }, []);
+  }, [recettesCompletes]);
 
   const slotsWithRecettes = useMemo(() =>
     slots.map(s => ({ slot: s, recette: recettesMap[s.recetteId] })).filter(x => x.recette),
@@ -396,7 +407,9 @@ export default function ImprimerPage() {
   const totalGeneral = recap.reduce((s, [, g]) => s + g, 0);
   const today = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
 
-  if (!hydrated) return null;
+  // Un plan vide n'attend rien : sinon la page resterait blanche pour de bon.
+  const corpusPret = recettesCompletes !== null || slots.length === 0;
+  if (!hydrated || !corpusPret) return null;
 
   if (slotsWithRecettes.length === 0) {
     return (

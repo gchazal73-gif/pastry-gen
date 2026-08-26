@@ -1,6 +1,6 @@
 'use client';
 
-import { RECETTES, FAMILLES, SOUS_CAT_LABELS } from '../../lib/recettes/index.js';
+import { CATALOGUE, NB_RECETTES, FAMILLES, SOUS_CAT_LABELS } from '../../lib/recettes/index.js';
 import styles from '../../app/bibliotheque/bibliotheque.module.css';
 
 const CONTRAINTES = [
@@ -20,7 +20,7 @@ const TRI_OPTIONS = [
 function buildFamilleStats() {
   const counts = {};
   const sousCats = {};
-  for (const r of RECETTES) {
+  for (const r of CATALOGUE) {
     if (!r.famille) continue;
     counts[r.famille] = (counts[r.famille] || 0) + 1;
     if (!sousCats[r.famille]) sousCats[r.famille] = {};
@@ -125,7 +125,7 @@ export default function FilterPanel({
             onClick={() => { setFiltreFamille(''); setFiltreSousCat(''); }}
           >
             <span>Toutes</span>
-            <span className={styles.catCount}>{RECETTES.length}</span>
+            <span className={styles.catCount}>{NB_RECETTES}</span>
           </button>
 
           {familles.map(([id, fam]) => {

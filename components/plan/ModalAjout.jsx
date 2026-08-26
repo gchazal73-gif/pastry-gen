@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { RECETTES, CATEGORIES } from '../../lib/recettes/index.js';
+import { CATALOGUE, CATEGORIES } from '../../lib/recettes/index.js';
 import styles from '../../app/plan-de-travail/plan.module.css';
 
 export default function ModalAjout({ open, onClose, onAdd }) {
@@ -25,10 +25,10 @@ export default function ModalAjout({ open, onClose, onAdd }) {
 
   const cats = Object.entries(CATEGORIES)
     .sort((a, b) => a[1].ordre - b[1].ordre)
-    .filter(([id]) => RECETTES.some(r => r.categorie === id));
+    .filter(([id]) => CATALOGUE.some(r => r.categorie === id));
 
   const recettesFiltrees = useMemo(() => {
-    let r = RECETTES;
+    let r = CATALOGUE;
     if (filtreCategorie) r = r.filter(x => x.categorie === filtreCategorie);
     if (recherche.trim()) {
       const q = recherche.toLowerCase();

@@ -69,6 +69,32 @@ Un seul jeu de moteurs sert les deux chemins :
 | `production.js` + `moules.js` | géométrie du moule → volume → masses par couche |
 | `moteur_accords.js` + `data_accords.js` | accords de parfums et textures compatibles |
 
+## La bibliothèque se charge en deux temps
+
+`lib/recettes/index.js` n'expose plus `RECETTES`. Il expose :
+
+- **`CATALOGUE`** (`catalogue.js`, généré) — l'index léger : nom, famille,
+  contraintes, allergènes, **noms** d'ingrédients, calories précalculées. Il part
+  avec la page et suffit à la liste, aux filtres et aux tris.
+- **`chargerRecettes()` / `chargerRecette(id)`** — les recettes complètes, avec
+  procédés et pesées, en `import()` dynamique. Turbopack les sort dans un chunk
+  à part, téléchargé seulement si l'utilisateur ouvre une fiche ou remplit un
+  plan de travail.
+- **`CATEGORIES`, `FAMILLES`, `SOUS_CAT_LABELS`** viennent de `taxonomie.js`,
+  séparé pour que `FilterPanel` puisse les lire sans entraîner le corpus.
+
+**Ne jamais écrire `import { RECETTES } from './complet.js'` dans une page ou un
+composant.** Cela ramène 6,5 Mo dans le bundle initial et annule le découpage.
+Mesuré : `/bibliotheque` est passée de 6,74 à 2,93 Mo (1,18 → 0,48 Mo gzip).
+
+`catalogue.js` est **généré** par `node scripts/genere-catalogue.mjs` et vérifié
+par `lib/__tests__/catalogue.test.js`. Si ce test échoue après une modification
+de recette, régénérer — sans quoi la recette existerait dans les fichiers source
+mais serait absente des filtres.
+
+Deux champs y sont précalculés parce qu'ils obligeaient sinon à tout charger :
+`ingredients_noms` (filtre par ingrédient) et `kcal_100g` (tri par calories).
+
 ## Les allergènes se résolvent en trois étages
 
 `allergenes.js` interroge d'abord `ingredients-metier.js` — le référentiel, qui

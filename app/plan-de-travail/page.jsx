@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Plus, Trash2, FileText, ShoppingCart } from 'lucide-react';
-import { RECETTES }             from '../../lib/recettes/index.js';
+import { chargerRecettes }      from '../../lib/recettes/index.js';
 import { getRecettesGenerees }  from '../../lib/recettes-generees-store.js';
 import { MOULES_PRESETS }       from '../../lib/moules.js';
 import { computeProductionPlan, normalizePercentages } from '../../lib/production.js';
@@ -112,12 +112,25 @@ export default function PlanDeTravailPage() {
     }
   }, [production.moules, hydrated]);
 
+  // Le plan a besoin des recettes *complètes* — procédés, pesées, indicateurs.
+  // Elles arrivent en import dynamique : inutile de les faire porter à toutes
+  // les pages du site pour un plan de travail qui est souvent vide.
+  const [recettesCompletes, setRecettesCompletes] = useState([]);
+  useEffect(() => {
+    // Uniquement si le plan contient quelque chose : un plan vide n'a aucune
+    // raison de faire télécharger les 6 Mo du corpus.
+    if (!hydrated || slots.length === 0) return;
+    let vivant = true;
+    chargerRecettes().then(rs => { if (vivant) setRecettesCompletes(rs); });
+    return () => { vivant = false; };
+  }, [hydrated, slots.length]);
+
   const recettesMap = useMemo(() => {
     const map = {};
-    RECETTES.forEach(r => { map[r.id] = r; });
+    recettesCompletes.forEach(r => { map[r.id] = r; });
     recettesGenerees.forEach(r => { map[r.id] = r; });
     return map;
-  }, [recettesGenerees]);
+  }, [recettesCompletes, recettesGenerees]);
 
   const allMoules = useMemo(() => [
     ...MOULES_PRESETS.map(m => ({ ...m, _preset: true })),
