@@ -87,8 +87,13 @@ function ColonneCompacte({ colonne, lignesUnifiees, colIdx, onChoisir, onDetail 
   const { params, recette, fourchettes } = colonne;
   const nbHors = fourchettes.filter(f => f.statut === 'hors').length;
   const nbAttn = fourchettes.filter(f => f.statut === 'attention').length;
-  const statutColor = nbHors > 0 ? 'var(--bad)' : nbAttn > 0 ? 'var(--warn)' : 'var(--ok)';
-  const statutLabel = nbHors > 0 ? `${nbHors} hors fourchette`
+  // Aucun indicateur mesurable : ne pas afficher un « ✓ Équilibré » obtenu
+  // par absence de données.
+  const rienDeMesure = fourchettes.length > 0 && fourchettes.every(f => f.statut === 'inconnu');
+  const statutColor = rienDeMesure ? 'var(--muted)'
+    : nbHors > 0 ? 'var(--bad)' : nbAttn > 0 ? 'var(--warn)' : 'var(--ok)';
+  const statutLabel = rienDeMesure ? '? Non évaluable'
+    : nbHors > 0 ? `${nbHors} hors fourchette`
     : nbAttn > 0 ? `${nbAttn} à vérifier` : '✓ Équilibré';
 
   return (

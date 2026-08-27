@@ -120,8 +120,12 @@ function badgeV2(equilibre) {
 
 function badgeV3(fourchettes) {
   const nb    = fourchettes.filter(f => f.statut === 'hors').length;
+  // Tout inconnu = rien n'a pu être mesuré (couverture insuffisante). C'était
+  // compté comme « équilibré » : un vert obtenu par absence de données.
+  const rienDeMesure = fourchettes.every(f => f.statut === 'inconnu');
   const allOk = fourchettes.every(f => f.statut === 'ok' || f.statut === 'inconnu');
-  return allOk  ? { bg: '#e3efe6', color: 'var(--ok)',   label: '✓ Équilibré'    }
+  return rienDeMesure ? { bg: 'var(--bg)',  color: 'var(--muted)', label: '? Non évaluable' }
+       : allOk  ? { bg: '#e3efe6', color: 'var(--ok)',   label: '✓ Équilibré'    }
        : nb >= 3 ? { bg: '#fde8e8', color: 'var(--bad)',  label: '✗ Déséquilibré' }
                  : { bg: '#fce8d4', color: 'var(--warn)', label: '⚠ À ajuster'    };
 }
