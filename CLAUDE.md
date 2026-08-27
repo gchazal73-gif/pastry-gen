@@ -95,6 +95,28 @@ mais serait absente des filtres.
 Deux champs y sont précalculés parce qu'ils obligeaient sinon à tout charger :
 `ingredients_noms` (filtre par ingrédient) et `kcal_100g` (tri par calories).
 
+## Le prix se résout en trois étages, comme les allergènes
+
+`cout.js` interroge `ingredients-metier.js` — 58 entrées, qui font foi — puis
+`ingredients-metier-familles.js` :
+
+- **synonyme** — « Sucre » → « Sucre semoule », « Crème UHT » → l'entrée exacte.
+  Le prix reste celui du référentiel, ce n'est pas une approximation.
+- **famille** — une purée de yuzu absente du référentiel prend la moyenne des
+  cinq purées qui y sont. Ces prix sont **dérivés du référentiel**, jamais
+  saisis : changer une entrée source recalcule la famille. Quelques préparations
+  se déduisent de leur composition (tant-pour-tant = amande + sucre glace).
+- **aucun** — la ligne compte pour zéro, et le coût est sous-évalué d'autant.
+
+Répartition de la masse : 33 % référentiel, 27 % synonyme, 20 % famille, 20 %
+sans prix. `calculerCoutRecette` remonte `part_prix_approche_pct` et
+`ingredients_prix_approche` ; la fiche et le récap métier les affichent, parce
+qu'un prix de famille ne doit pas fonder un prix de vente sans qu'on le sache.
+
+**Un ingrédient sans prix compte pour zéro** : une recette paraît d'autant moins
+chère qu'on en connaît moins les ingrédients. C'est pour cela que le taux de
+couverture est affiché à côté du coût, et non en note de bas de page.
+
 ## Les allergènes se résolvent en trois étages
 
 `allergenes.js` interroge d'abord `ingredients-metier.js` — le référentiel, qui

@@ -104,7 +104,14 @@ export default function RecapMetier({ slots, recettesMap }) {
             })}
             {coutTotal.taux_couverture_pct < 100 && (
               <div className="note" style={{ borderColor: 'var(--warn)', fontSize: 12, marginTop: 8 }}>
-                ⚠ Couverture {coutTotal.taux_couverture_pct} % — certains ingrédients sans prix.
+                ⚠ Couverture {coutTotal.taux_couverture_pct} % — certains ingrédients sans prix,
+                le coût est sous-évalué d&apos;autant.
+              </div>
+            )}
+            {coutTotal.part_prix_approche_pct > 0 && (
+              <div className="note" style={{ fontSize: 12, marginTop: 8, color: 'var(--muted)' }}>
+                ° {coutTotal.part_prix_approche_pct} % du coût repose sur un prix de famille,
+                faute de l&apos;article exact au référentiel.
               </div>
             )}
           </div>

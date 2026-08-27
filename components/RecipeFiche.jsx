@@ -526,6 +526,16 @@ function EncartCout({ lignes }) {
           {cout.taux_couverture_pct < 100 && (
             <div className="note" style={{ borderColor: 'var(--warn)', fontSize: 12, marginBottom: 8 }}>
               ⚠ Couverture {cout.taux_couverture_pct} % — prix manquants : {cout.ingredients_sans_prix.join(', ')}.
+              Le coût affiché est donc sous-évalué.
+            </div>
+          )}
+          {/* Un prix de famille est une moyenne du référentiel, pas le prix de
+              l'article : à distinguer avant de s'en servir pour fixer un prix. */}
+          {cout.part_prix_approche_pct > 0 && (
+            <div className="note" style={{ fontSize: 12, marginBottom: 8, color: 'var(--muted)' }}>
+              ° {cout.part_prix_approche_pct} % du coût repose sur un prix de famille,
+              faute de l&apos;article exact au référentiel : {cout.ingredients_prix_approche.join(', ')}.
+              Corrigeable dans la Mercuriale.
             </div>
           )}
           {cout.prix_obsolete.length > 0 && (
